@@ -1,0 +1,53 @@
+version: '3.3'
+
+services:
+  trip-database:
+    image: postgis/postgis:17-3.5-alpine
+    container_name: trip-database
+    env_file: .env
+    # restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_DB: ${DATABASE_NAME}
+    # network_mode: host
+    volumes:
+      - trip-database1:/var/lib/postgresql/data
+
+  trip-api:
+    image: node:22.17.0
+    container_name: trip-api
+    working_dir: /app
+    # command:
+    #   - sh
+    #   - -c
+    #   - 'npm install && npm run start:dev'
+    volumes:
+      - ./:/app
+      - ./assets/images:/images
+      # - ./db/migrations:/db/migrations
+      # - ./db/migrate.sh:/db/migrate.sh
+    # restart: always
+    # network_mode: host
+    ports:
+      - 3000:3000
+    depends_on:
+      - trip-database
+    env_file:
+      - .env
+    command: >
+      /bin/bash -c "npm install && npm run seed && npm run start:dev
+      "
+
+  trip-pgadmin:
+    image: elestio/pgadmin:REL-8_13
+    container_name: trip-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@efd.com
+      PGADMIN_DEFAULT_PASSWORD: efd
+    ports:
+      - 8002:80
+    depends_on:
+      - trip-database
+volumes:
+  trip-database1:
