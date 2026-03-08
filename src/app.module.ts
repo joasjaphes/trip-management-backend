@@ -24,6 +24,8 @@ import { VehiclePermitService } from './modules/vehicle-permit/vehicle-permit.se
 import { VehicleController } from './modules/vehicle/vehicle.controller';
 import { VehicleService } from './modules/vehicle/vehicle.service';
 import { SeedModule } from './modules/seeds/seed.module';
+import { UploadController } from './modules/upload/upload.controller';
+import { UploadService } from './modules/upload/upload.service';
 
 
 const DATABASE_HOST = process.env.DATABASE_HOST;
@@ -68,6 +70,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     VehiclePermitController,
     TripController,
     TripExpenseController,
+    UploadController,
   ],
   providers: [
     AppService,
@@ -80,6 +83,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     VehiclePermitService,
     TripService,
     TripExpenseService,
+    UploadService,
   ],
 })
 export class AppModule {}
