@@ -20,7 +20,7 @@ export class TripExpenseService {
     private tripRepository: Repository<Trip>,
     @InjectRepository(Expense)
     private expenseRepository: Repository<Expense>,
-  ) {}
+  ) { }
 
   async createTripExpense(data: CreateTripExpenseDTO): Promise<TripExpenseModel> {
     try {
@@ -32,7 +32,7 @@ export class TripExpenseService {
         expenseUid: data.expenseId,
         amount: data.amount,
         receiptAttachment: data.receiptAttachment,
-        date: new Date(data.date),
+        date: data.date ? new Date(data.date) : new Date(),
       });
       const saved = await this.repository.save(payload);
       return saved.toDTO();

@@ -13,6 +13,8 @@ import { DriverController } from './modules/driver/driver.controller';
 import { DriverService } from './modules/driver/driver.service';
 import { ExpenseController } from './modules/expense/expense.controller';
 import { ExpenseService } from './modules/expense/expense.service';
+import { PermitRegistrationController } from './modules/permit-registration/permit-registration.controller';
+import { PermitRegistrationService } from './modules/permit-registration/permit-registration.service';
 import { RouteController } from './modules/route/route.controller';
 import { RouteService } from './modules/route/route.service';
 import { TripExpenseController } from './modules/trip-expense/trip-expense.controller';
@@ -26,6 +28,12 @@ import { VehicleService } from './modules/vehicle/vehicle.service';
 import { SeedModule } from './modules/seeds/seed.module';
 import { UploadController } from './modules/upload/upload.controller';
 import { UploadService } from './modules/upload/upload.service';
+import { CustomerController } from './modules/customer/customer.controller';
+import { CustomerService } from './modules/customer/customer.service';
+import { InvoiceController } from './modules/invoice/invoice.controller';
+import { InvoiceService } from './modules/invoice/invoice.service';
+import { ReceiptController } from './modules/receipt/receipt.controller';
+import { ReceiptService } from './modules/receipt/receipt.service';
 
 
 const DATABASE_HOST = process.env.DATABASE_HOST;
@@ -64,6 +72,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     UserController,
     CargoTypeController,
     ExpenseController,
+    PermitRegistrationController,
     DriverController,
     RouteController,
     VehicleController,
@@ -71,12 +80,16 @@ const isProduction = process.env.NODE_ENV === 'production';
     TripController,
     TripExpenseController,
     UploadController,
+    CustomerController,
+    InvoiceController,
+    ReceiptController,
   ],
   providers: [
     AppService,
     UserService,
     CargoTypeService,
     ExpenseService,
+    PermitRegistrationService,
     DriverService,
     RouteService,
     VehicleService,
@@ -84,6 +97,9 @@ const isProduction = process.env.NODE_ENV === 'production';
     TripService,
     TripExpenseService,
     UploadService,
+    CustomerService,
+    InvoiceService,
+    ReceiptService,
   ],
 })
 export class AppModule {}

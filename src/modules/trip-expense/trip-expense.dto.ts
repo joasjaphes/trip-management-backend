@@ -12,6 +12,7 @@ import { BaseCreateAppDTO } from '../../shared/base-create-app.dto';
 export interface TripExpenseModel extends BaseAppModel {
   tripId: string;
   expenseId: string;
+  expenseDescription?: string;
   amount: number;
   receiptAttachment?: string;
   date: string;
@@ -39,5 +40,5 @@ export class CreateTripExpenseDTO extends BaseCreateAppDTO {
 
   @IsDateString()
   @ApiProperty({ example: '2026-03-07T11:00:00.000Z' })
-  date: string;
+  date?: string;
 }

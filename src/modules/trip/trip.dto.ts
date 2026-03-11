@@ -10,6 +10,11 @@ import {
 import { BaseAppModel } from '../../shared/base-app-dto';
 import { BaseCreateAppDTO } from '../../shared/base-create-app.dto';
 import { TripExpenseModel } from '../trip-expense/trip-expense.dto';
+import { DriverModel } from '../driver/driver.dto';
+import { RouteModel } from '../route/route.dto';
+import { VehicleModel } from '../vehicle/vehicle.dto';
+import { CargoTypeModel } from '../cargo-type/cargo-type.dto';
+import { CustomerModel } from '../customer/customer.dto';
 
 export enum TripStatus {
   PENDING = 'pending',
@@ -23,9 +28,16 @@ export interface TripModel extends BaseAppModel {
   endDate?: string;
   vehicleId: string;
   driverId: string;
+  driver?: DriverModel;
+  route?: RouteModel;
+  vehicle?: VehicleModel;
+  cargoType?: CargoTypeModel;
   routeId: string;
   cargoTypeId: string;
+  customerId?: string;
+  customer?: CustomerModel;
   revenue: number;
+  paidAmount: number;
   income: number;
   expenses: TripExpenseModel[];
   status: TripStatus;
@@ -65,9 +77,29 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @ApiProperty({ example: 1500000 })
   revenue: number;
 
+  @IsOptional()
+  @IsNumber()
+  @ApiProperty({ example: 0, required: false })
+  paidAmount?: number;
+
   @IsNumber()
   @ApiProperty({ example: 1200000 })
   income: number;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: 'Acme Corporation' })
+  customerName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: '123456789' })
+  customerTIN: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: '+255700000000', required: false })
+  customerPhone?: string;
 
   @IsEnum(TripStatus)
   @ApiProperty({ enum: TripStatus, example: TripStatus.PENDING })

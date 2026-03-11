@@ -6,6 +6,7 @@ import { Driver } from '../driver/driver.entity';
 import { Route } from '../route/route.entity';
 import { CargoType } from '../cargo-type/cargo-type.entity';
 import { TripExpense } from '../trip-expense/trip-expense.entity';
+import { Customer } from '../customer/customer.entity';
 
 @Entity('trips')
 export class Trip extends BaseAppEntity<TripModel> {
@@ -30,8 +31,14 @@ export class Trip extends BaseAppEntity<TripModel> {
   @Column({ type: 'float', nullable: false })
   revenue: number;
 
+  @Column({ type: 'float', nullable: false, default: 0 })
+  paidAmount: number;
+
   @Column({ type: 'float', nullable: false })
   income: number;
+
+  @Column({ nullable: true })
+  customerUid?: string;
 
   @Column({
     type: 'enum',
@@ -48,7 +55,7 @@ export class Trip extends BaseAppEntity<TripModel> {
   @JoinColumn({ name: 'driverUid', referencedColumnName: 'uid' })
   driver: Driver;
 
-  @ManyToOne(() => Route, { nullable: false })
+  @ManyToOne(() => Route, { nullable: false, eager:true })
   @JoinColumn({ name: 'routeUid', referencedColumnName: 'uid' })
   route: Route;
 
@@ -59,6 +66,10 @@ export class Trip extends BaseAppEntity<TripModel> {
   @OneToMany(() => TripExpense, (tripExpense) => tripExpense.trip)
   expenses: TripExpense[];
 
+  @ManyToOne(() => Customer, { nullable: true })
+  @JoinColumn({ name: 'customerUid', referencedColumnName: 'uid' })
+  customer: Customer;
+
   toDTO(options?: { eager: boolean }): TripModel {
     const { eager = false } = options ?? {};
 
@@ -68,11 +79,18 @@ export class Trip extends BaseAppEntity<TripModel> {
       updatedAt: this.updatedAt.toISOString(),
       tripDate: this.tripDate.toISOString(),
       endDate: this.endDate?.toISOString(),
+      vehicle: this.vehicle?.toDTO(),
+      driver: this.driver?.toDTO(),
+      route: this.route?.toDTO(),
+      cargoType: this.cargoType?.toDTO(),
       vehicleId: this.vehicleUid,
       driverId: this.driverUid,
       routeId: this.routeUid,
       cargoTypeId: this.cargoTypeUid,
+      customerId: this.customerUid,
+      customer: this.customer?.toDTO(),
       revenue: this.revenue,
+      paidAmount: this.paidAmount,
       income: this.income,
       expenses: eager ? (this.expenses ?? []).map((expense) => expense.toDTO()) : [],
       status: this.status,
