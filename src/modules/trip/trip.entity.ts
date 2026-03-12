@@ -10,6 +10,9 @@ import { Customer } from '../customer/customer.entity';
 
 @Entity('trips')
 export class Trip extends BaseAppEntity<TripModel> {
+  @Column({ nullable: false, length: 50, default:`TRP-${Date.now()}` })
+  tripReferenceNumber: string;
+
   @Column({ type: 'timestamptz', nullable: false })
   tripDate: Date;
 
@@ -75,6 +78,7 @@ export class Trip extends BaseAppEntity<TripModel> {
 
     return {
       id: this.uid,
+      tripReferenceNumber: this.tripReferenceNumber,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
       tripDate: this.tripDate.toISOString(),

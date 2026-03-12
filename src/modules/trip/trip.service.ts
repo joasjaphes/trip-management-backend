@@ -70,8 +70,11 @@ export class TripService {
           throw new BadRequestException('paidAmount must be between 0 and revenue');
         }
 
+        const tripReferenceNumber = `TRP-${Date.now()}`;
+
         const payload = tripRepository.create({
           uid: data.id,
+          tripReferenceNumber,
           tripDate: new Date(data.tripDate),
           endDate: data.endDate ? new Date(data.endDate) : undefined,
           vehicleUid: data.vehicleId,
@@ -117,26 +120,115 @@ export class TripService {
 
   async updateTrip(data: CreateTripDTO): Promise<TripModel> {
     try {
-      const entity = await this.repository.findOne({ where: { uid: data.id } });
-      if (!entity) {
-        throw new NotFoundException(`Trip with ID ${data.id} does not exist`);
-      }
+      return await this.repository.manager.transaction(async (manager) => {
+        const tripRepository = manager.getRepository(Trip);
+        const customerRepository = manager.getRepository(Customer);
+        const invoiceRepository = manager.getRepository(Invoice);
+        const vehicleRepository = manager.getRepository(Vehicle);
+        const driverRepository = manager.getRepository(Driver);
+        const routeRepository = manager.getRepository(Route);
+        const cargoTypeRepository = manager.getRepository(CargoType);
 
-      await this.validateReferences(data);
+        const entity = await tripRepository.findOne({ where: { uid: data.id } });
+        if (!entity) {
+          throw new NotFoundException(`Trip with ID ${data.id} does not exist`);
+        }
 
-      entity.tripDate = data.tripDate ? new Date(data.tripDate) : entity.tripDate;
-      entity.endDate = data.endDate ? new Date(data.endDate) : entity.endDate;
-      entity.vehicleUid = data.vehicleId || entity.vehicleUid;
-      entity.driverUid = data.driverId || entity.driverUid;
-      entity.routeUid = data.routeId || entity.routeUid;
-      entity.cargoTypeUid = data.cargoTypeId || entity.cargoTypeUid;
-      entity.revenue = data.revenue ?? entity.revenue;
-      entity.paidAmount = data.paidAmount ?? entity.paidAmount;
-      entity.income = data.income ?? entity.income;
-      entity.status = data.status || entity.status;
+        await this.validateReferences(data, {
+          vehicleRepository,
+          driverRepository,
+          routeRepository,
+          cargoTypeRepository,
+        });
 
-      const updated = await this.repository.save(entity);
-      return updated.toDTO();
+        let customerUid = entity.customerUid;
+        if (data.customerTIN) {
+          let customer = await customerRepository.findOne({
+            where: { tin: data.customerTIN },
+          });
+
+          if (!customer) {
+            if (!data.customerName) {
+              throw new BadRequestException(
+                'customerName is required when assigning a new customerTIN',
+              );
+            }
+            customer = customerRepository.create({
+              uid: randomUUID(),
+              name: data.customerName,
+              tin: data.customerTIN,
+              phone: data.customerPhone,
+            });
+            customer = await customerRepository.save(customer);
+          } else {
+            let shouldUpdateCustomer = false;
+            if (data.customerName && data.customerName !== customer.name) {
+              customer.name = data.customerName;
+              shouldUpdateCustomer = true;
+            }
+            if (
+              data.customerPhone !== undefined &&
+              data.customerPhone !== customer.phone
+            ) {
+              customer.phone = data.customerPhone;
+              shouldUpdateCustomer = true;
+            }
+            if (shouldUpdateCustomer) {
+              customer = await customerRepository.save(customer);
+            }
+          }
+
+          customerUid = customer.uid;
+        }
+
+        const nextPaidAmount = data.paidAmount ?? entity.paidAmount;
+        const nextRevenue = data.revenue ?? entity.revenue;
+        if (nextPaidAmount < 0 || nextPaidAmount > nextRevenue) {
+          throw new BadRequestException('paidAmount must be between 0 and revenue');
+        }
+
+        entity.tripDate = data.tripDate ? new Date(data.tripDate) : entity.tripDate;
+        entity.endDate = data.endDate ? new Date(data.endDate) : entity.endDate;
+        entity.vehicleUid = data.vehicleId || entity.vehicleUid;
+        entity.driverUid = data.driverId || entity.driverUid;
+        entity.routeUid = data.routeId || entity.routeUid;
+        entity.cargoTypeUid = data.cargoTypeId || entity.cargoTypeUid;
+        entity.revenue = nextRevenue;
+        entity.paidAmount = nextPaidAmount;
+        entity.income = data.income ?? entity.income;
+        entity.status = data.status || entity.status;
+        entity.customerUid = customerUid;
+
+        const updated = await tripRepository.save(entity);
+
+        const invoice = await invoiceRepository.findOne({ where: { tripUid: entity.uid } });
+        if (invoice) {
+          if (invoice.paidAmount > updated.revenue) {
+            throw new BadRequestException(
+              'Trip revenue cannot be lower than already paid invoice amount',
+            );
+          }
+
+          invoice.customerUid = customerUid ?? invoice.customerUid;
+          invoice.amount = updated.revenue;
+          invoice.paymentStatus =
+            invoice.paidAmount <= 0
+              ? InvoicePaymentStatus.UNPAID
+              : invoice.paidAmount >= invoice.amount
+                ? InvoicePaymentStatus.FULL_PAID
+                : InvoicePaymentStatus.PARTIALLY_PAID;
+
+          if (invoice.paymentStatus === InvoicePaymentStatus.FULL_PAID) {
+            invoice.status = InvoiceStatus.PAID;
+          } else if (invoice.status === InvoiceStatus.PAID) {
+            invoice.status = InvoiceStatus.ISSUED;
+          }
+
+          await invoiceRepository.save(invoice);
+        }
+
+        return updated.toDTO();
+      });
     } catch (e) {
       Logger.error('Failed to update trip', e);
       throw e;

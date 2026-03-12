@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -28,5 +29,11 @@ export class ReceiptController {
   @UsePipes(new ValidationPipe())
   async createReceipt(@Body() data: CreateReceiptDTO): Promise<ReceiptModel> {
     return this.receiptService.createReceipt(data);
+  }
+
+  @Put()
+  @UsePipes(new ValidationPipe())
+  async updateReceipt(@Body() data: CreateReceiptDTO): Promise<ReceiptModel> {
+    return this.receiptService.updateReceipt(data);
   }
 }

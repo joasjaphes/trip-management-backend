@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -35,5 +36,10 @@ export class TripExpenseController {
   @UsePipes(new ValidationPipe())
   async updateTripExpense(@Body() data: CreateTripExpenseDTO): Promise<TripExpenseModel> {
     return this.tripExpenseService.updateTripExpense(data);
+  }
+
+  @Delete('/:id')
+  async deleteTripExpense(@Param('id') id: string): Promise<TripExpenseModel> {
+    return this.tripExpenseService.deleteTripExpense(id);
   }
 }

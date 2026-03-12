@@ -88,6 +88,24 @@ export class TripExpenseService {
     }
   }
 
+  async deleteTripExpense(id: string): Promise<TripExpenseModel> {
+    try {
+      const entity = await this.repository.findOne({ where: { uid: id, deleted: false } });
+      if (!entity) {
+        throw new NotFoundException(`Trip expense with ID ${id} not found`);
+      }
+
+      entity.deleted = true;
+      entity.deletedAt = new Date();
+
+      const deletedEntity = await this.repository.save(entity);
+      return deletedEntity.toDTO();
+    } catch (e) {
+      Logger.error('Failed to delete trip expense', e);
+      throw e;
+    }
+  }
+
   private async validateReferences(data: CreateTripExpenseDTO): Promise<void> {
     const [trip, expense] = await Promise.all([
       this.tripRepository.findOne({ where: { uid: data.tripId } }),

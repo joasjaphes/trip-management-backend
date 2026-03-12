@@ -30,7 +30,6 @@ export class TripExpense extends BaseAppEntity<TripExpenseModel> {
   expense: Expense;
 
   toDTO(options?: { eager: boolean }): TripExpenseModel {
-    console.log('expense', this.expense);
     return {
       id: this.uid,
       createdAt: this.createdAt.toISOString(),

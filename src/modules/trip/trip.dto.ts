@@ -24,6 +24,7 @@ export enum TripStatus {
 }
 
 export interface TripModel extends BaseAppModel {
+  tripReferenceNumber: string;
   tripDate: string;
   endDate?: string;
   vehicleId: string;
@@ -87,14 +88,14 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   income: number;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: 'Acme Corporation' })
-  customerName: string;
+  @IsOptional()
+  @ApiProperty({ example: 'Acme Corporation', required: false })
+  customerName?: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: '123456789' })
-  customerTIN: string;
+  @IsOptional()
+  @ApiProperty({ example: '123456789', required: false })
+  customerTIN?: string;
 
   @IsString()
   @IsOptional()

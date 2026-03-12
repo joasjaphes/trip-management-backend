@@ -61,6 +61,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     SeedModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
       exclude: ['/api/{*test}'],
       serveStaticOptions: {
         fallthrough: false,
