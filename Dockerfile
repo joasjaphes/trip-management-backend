@@ -29,14 +29,14 @@ COPY --from=builder /app/dist ./dist
 
 RUN npm install --production -f
 RUN npm install typeorm --save-dev -f
-RUN apt-get update
-RUN apt-get install -y chromium fonts-freefont-ttf
-RUN rm -rf /var/lib/apt/lists/*
+# RUN apt-get update
+# RUN apt-get install -y chromium fonts-freefont-ttf
+# RUN rm -rf /var/lib/apt/lists/*
 
 # Step 10: Expose the app's port
 EXPOSE 3000
 
 # Step 11: Define the default command to run the app
-# CMD ["sh", "-c", "npm run migration:run-prod && node dist/src/main"]
+# CMD ["sh", "-c", "node dist/src/main && npm run seed:prod"]
 CMD ["node", "dist/main"]
 

@@ -13,7 +13,10 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
-  app.enableCors();
+  app.enableCors({
+    origin: ['http://localhost:4200', 'https://tripmanagement.monitafrica.com'],
+    credentials: true,
+  });
   app.setGlobalPrefix('api');
   await app.listen(process.env.PORT ?? 3000);
 }

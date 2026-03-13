@@ -5,8 +5,8 @@ import { entities } from '../../shared/entities';
 const DATABASE_HOST = process.env.DATABASE_HOST;
 const DATABASE_PORT: number = Number.parseInt('' + process.env.DATABASE_PORT);
 const DATABASE_USERNAME = process.env.DATABASE_USERNAME;
-const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
-const DATABASE_NAME = process.env.DATABASE_NAME;
+const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD || 'admin';
+const DATABASE_NAME = process.env.DATABASE_NAME || 'trips';
 const isProduction = process.env.NODE_ENV === 'production';
 
 @Module({

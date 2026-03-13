@@ -17,10 +17,10 @@ import { CargoTypeModel } from '../cargo-type/cargo-type.dto';
 import { CustomerModel } from '../customer/customer.dto';
 
 export enum TripStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'inprogress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
+ 	PENDING = 'Pending payment',
+	IN_PROGRESS = 'Inprogress',
+	COMPLETED = 'Completed',
+	CANCELLED = 'Cancelled'
 }
 
 export interface TripModel extends BaseAppModel {
