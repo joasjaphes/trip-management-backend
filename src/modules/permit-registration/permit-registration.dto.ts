@@ -2,10 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { BaseAppModel } from '../../shared/base-app-dto';
 import { BaseCreateAppDTO } from '../../shared/base-create-app.dto';
+import { IssuingBodyModel } from '../issuing-body/issuing-body.dto';
 
 export interface PermitRegistrationModel extends BaseAppModel {
   name: string;
-  authorizingBody: string;
+  issuingBodyId: string;
+  issuingBody?: IssuingBodyModel; // This will hold the DTO of the related IssuingBody when eager loading is used
   isActive: boolean;
 }
 
@@ -17,8 +19,8 @@ export class CreatePermitRegistrationDTO extends BaseCreateAppDTO {
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: 'Tanzania Revenue Authority' })
-  authorizingBody: string;
+  @ApiProperty({ example: 'issuing-body-uid-123' })
+  issuingBodyId: string;
 
   @IsOptional()
   @IsBoolean()

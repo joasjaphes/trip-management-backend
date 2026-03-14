@@ -9,6 +9,8 @@ import { UserController } from './modules/user/user.controller';
 import { UserService } from './modules/user/user.service';
 import { CargoTypeController } from './modules/cargo-type/cargo-type.controller';
 import { CargoTypeService } from './modules/cargo-type/cargo-type.service';
+import { CompanyProfileController } from './modules/company-profile/company-profile.controller';
+import { CompanyProfileService } from './modules/company-profile/company-profile.service';
 import { DriverController } from './modules/driver/driver.controller';
 import { DriverService } from './modules/driver/driver.service';
 import { ExpenseController } from './modules/expense/expense.controller';
@@ -32,6 +34,8 @@ import { CustomerController } from './modules/customer/customer.controller';
 import { CustomerService } from './modules/customer/customer.service';
 import { InvoiceController } from './modules/invoice/invoice.controller';
 import { InvoiceService } from './modules/invoice/invoice.service';
+import { IssuingBodyController } from './modules/issuing-body/issuing-body.controller';
+import { IssuingBodyService } from './modules/issuing-body/issuing-body.service';
 import { ReceiptController } from './modules/receipt/receipt.controller';
 import { ReceiptService } from './modules/receipt/receipt.service';
 
@@ -55,7 +59,7 @@ const isProduction = process.env.NODE_ENV === 'production';
       database: DATABASE_NAME,
       entities,
       migrations: ['src/migrations/*.ts'],
-      synchronize: !isProduction,
+      synchronize: true,
     }),
     TypeOrmModule.forFeature([...entities]),
     SeedModule,
@@ -72,6 +76,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     AppController,
     UserController,
     CargoTypeController,
+    CompanyProfileController,
     ExpenseController,
     PermitRegistrationController,
     DriverController,
@@ -83,12 +88,14 @@ const isProduction = process.env.NODE_ENV === 'production';
     UploadController,
     CustomerController,
     InvoiceController,
+    IssuingBodyController,
     ReceiptController,
   ],
   providers: [
     AppService,
     UserService,
     CargoTypeService,
+    CompanyProfileService,
     ExpenseService,
     PermitRegistrationService,
     DriverService,
@@ -100,6 +107,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     UploadService,
     CustomerService,
     InvoiceService,
+    IssuingBodyService,
     ReceiptService,
   ],
 })

@@ -1,14 +1,23 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseAppEntity } from '../../shared/base-app-entity';
 import { PermitRegistrationModel } from './permit-registration.dto';
+import { IssuingBody } from '../issuing-body/issuing-body.entity';
 
 @Entity('permit_registrations')
 export class PermitRegistration extends BaseAppEntity<PermitRegistrationModel> {
   @Column({ nullable: false, length: 120 })
   name: string;
 
-  @Column({ nullable: false, length: 180 })
-  authorizingBody: string;
+  @Column({ nullable: true })
+  issuingBodyUid: string;
+
+  @ManyToOne(
+    () => IssuingBody,
+    (issuingBody) => issuingBody.permitRegistrations,
+    { nullable: true },
+  )
+  @JoinColumn({ name: 'issuingBodyUid', referencedColumnName: 'uid' })
+  issuingBody: IssuingBody;
 
   @Column({ default: true })
   isActive: boolean;
@@ -19,7 +28,8 @@ export class PermitRegistration extends BaseAppEntity<PermitRegistrationModel> {
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
       name: this.name,
-      authorizingBody: this.authorizingBody,
+      issuingBodyId: this.issuingBodyUid,
+      issuingBody: options?.eager && this.issuingBody ? this.issuingBody.toDTO({ eager: false }) : undefined,
       isActive: this.isActive,
       active: this.active,
       deleted: this.deleted,
