@@ -14,12 +14,12 @@ import {
 } from './company-profile.dto';
 import { CompanyProfileService } from './company-profile.service';
 
-@Controller('company-profiles')
+@Controller('company-profile')
 export class CompanyProfileController {
   constructor(private companyProfileService: CompanyProfileService) {}
 
   @Get()
-  async getAllCompanyProfiles(): Promise<CompanyProfileModel[]> {
+  async getAllCompanyProfiles(): Promise<CompanyProfileModel> {
     return this.companyProfileService.getAllCompanyProfiles();
   }
 

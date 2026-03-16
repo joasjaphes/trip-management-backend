@@ -28,6 +28,7 @@ export class CompanyProfileService {
         district: data.district,
         street: data.street,
         plot: data.plot,
+        logo: data.logo,
         postalAddress: data.postalAddress,
         description: data.description,
         isActive: data.isActive ?? true,
@@ -73,10 +74,14 @@ export class CompanyProfileService {
     }
   }
 
-  async getAllCompanyProfiles(): Promise<CompanyProfileModel[]> {
+  async getAllCompanyProfiles(): Promise<CompanyProfileModel> {
     try {
       const entities = await this.repository.find();
-      return entities.map((entity) => entity.toDTO());
+      const profile = entities[0];
+      if (!profile) {
+        throw new NotFoundException('No company profiles found');
+      }
+      return profile.toDTO();
     } catch (e) {
       Logger.error('Failed to get company profiles', e);
       throw e;
