@@ -16,6 +16,7 @@ export class VehicleService {
       const payload = this.repository.create({
         uid: data.id,
         registrationNo: data.registrationNo,
+        model: data.model,
         registrationYear: data.registrationYear,
         tankCapacity: data.tankCapacity,
         mileagePerFullTank: data.mileagePerFullTank,
@@ -41,6 +42,7 @@ export class VehicleService {
       entity.tankCapacity = data.tankCapacity ?? entity.tankCapacity;
       entity.mileagePerFullTank =
         data.mileagePerFullTank ?? entity.mileagePerFullTank;
+      entity.model = data.model ?? entity.model;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

@@ -21,6 +21,9 @@ export class Vehicle extends BaseAppEntity<VehicleModel> {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ nullable: true })
+  model: string;
+
   @OneToMany(() => VehiclePermit, (permit) => permit.vehicle)
   permits: VehiclePermit[];
 
@@ -38,6 +41,7 @@ export class Vehicle extends BaseAppEntity<VehicleModel> {
       registrationYear: this.registrationYear,
       tankCapacity: this.tankCapacity,
       mileagePerFullTank: this.mileagePerFullTank,
+      model: this.model,
       permits: eager ? (this.permits ?? []).map((permit) => permit.toDTO()) : [],
       isActive: this.isActive,
       active: this.active,

@@ -12,6 +12,7 @@ import { VehiclePermitModel } from '../vehicle-permit/vehicle-permit.dto';
 
 export interface VehicleModel extends BaseAppModel {
   registrationNo: string;
+  model?: string;
   registrationYear?: number;
   tankCapacity: number;
   mileagePerFullTank: number;
@@ -33,6 +34,11 @@ export class CreateVehicleDTO extends BaseCreateAppDTO {
   @IsNumber()
   @ApiProperty({ example: 400 })
   tankCapacity: number;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'Toyota Camry', required: false })
+  model?: string;
 
   @IsNumber()
   @ApiProperty({ example: 1200 })
