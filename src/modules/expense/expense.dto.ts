@@ -8,9 +8,15 @@ export enum ExpenseCategory {
   OTHER = 'OTHER',
 }
 
+export enum ExpenseType {
+  TRIP = 'TRIP',
+  OFFICE = 'OFFICE',
+}
+
 export interface ExpenseModel extends BaseAppModel {
   name: string;
   category: ExpenseCategory;
+  type: ExpenseType;
   description?: string;
   isActive: boolean;
 }

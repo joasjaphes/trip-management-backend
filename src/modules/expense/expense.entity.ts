@@ -1,6 +1,6 @@
 import { Column, Entity } from 'typeorm';
 import { BaseAppEntity } from '../../shared/base-app-entity';
-import { ExpenseCategory, ExpenseModel } from './expense.dto';
+import { ExpenseCategory, ExpenseModel, ExpenseType } from './expense.dto';
 
 @Entity('expenses')
 export class Expense extends BaseAppEntity<ExpenseModel> {
@@ -17,6 +17,13 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
   @Column({ nullable: true, type: 'text' })
   description?: string;
 
+  @Column({
+    type: 'enum',
+    enum: ExpenseType,
+    default: ExpenseType.TRIP,
+  })
+  type: ExpenseType;
+
   @Column({ default: true })
   isActive: boolean;
 
@@ -27,6 +34,7 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
       updatedAt: this.updatedAt.toISOString(),
       name: this.name,
       category: this.category,
+      type: this.type,
       description: this.description,
       isActive: this.isActive,
       active: this.active,
