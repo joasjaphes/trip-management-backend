@@ -14,6 +14,10 @@ export interface CompanyProfileModel extends BaseAppModel {
   street?: string;
   plot?: string;
   postalAddress?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankAccountName?: string;
+  bankBranch?: string;
   description?: string;
   isActive?: boolean;
 }
@@ -68,6 +72,26 @@ export class CreateCompanyProfileDTO extends BaseCreateAppDTO {
     required: false,
   })
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'NMB Bank', required: false })
+  bankName?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: '1234567890', required: false })
+  bankAccountNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'Monit Africa Logistics Ltd', required: false })
+  bankAccountName?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'NMB Branch', required: false })
+  bankBranch?: string;
 
   @IsOptional()
   @IsBoolean()

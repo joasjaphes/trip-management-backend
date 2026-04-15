@@ -29,6 +29,10 @@ export class CompanyProfileService {
         street: data.street,
         plot: data.plot,
         logo: data.logo,
+        bankName: data.bankName,
+        bankAccountNumber: data.bankAccountNumber,
+        bankAccountName: data.bankAccountName,
+        bankBranch: data.bankBranch,
         postalAddress: data.postalAddress,
         description: data.description,
         isActive: data.isActive ?? true,
@@ -60,8 +64,13 @@ export class CompanyProfileService {
       entity.district = data.district || entity.district;
       entity.street = data.street || entity.street;
       entity.plot = data.plot || entity.plot;
+      entity.logo = data.logo || entity.logo;
       entity.postalAddress = data.postalAddress || entity.postalAddress;
       entity.description = data.description ?? entity.description;
+      entity.bankName = data.bankName || entity.bankName;
+      entity.bankAccountNumber = data.bankAccountNumber || entity.bankAccountNumber;
+      entity.bankAccountName = data.bankAccountName || entity.bankAccountName;
+      entity.bankBranch = data.bankBranch || entity.bankBranch;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

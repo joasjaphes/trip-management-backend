@@ -34,6 +34,18 @@ export class CompanyProfile extends BaseAppEntity<CompanyProfileModel> {
   @Column({ nullable: true, type: 'text' })
   description?: string;
 
+  @Column({ nullable: true, length: 120 })
+  bankName?: string;
+
+  @Column({ nullable: true, length: 50 })
+  bankAccountNumber?: string;
+
+  @Column({ nullable: true, length: 120 })
+  bankAccountName?: string;
+
+  @Column({ nullable: true, length: 120 })
+  bankBranch?: string;
+
   @Column({ nullable: true, length: 255 })
   logo?: string;
 
@@ -57,6 +69,10 @@ export class CompanyProfile extends BaseAppEntity<CompanyProfileModel> {
       description: this.description,
       isActive: this.isActive,
       logo: this.logo,
+      bankName: this.bankName,
+      bankAccountNumber: this.bankAccountNumber,
+      bankAccountName: this.bankAccountName,
+      bankBranch: this.bankBranch,
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),
