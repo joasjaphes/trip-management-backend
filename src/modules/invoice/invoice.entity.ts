@@ -23,6 +23,12 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
   amount: number;
 
   @Column({ type: 'float', nullable: false, default: 0 })
+  subtotal: number;
+
+  @Column({ type: 'float', nullable: true, default: 0 })
+  vatAmount?: number;
+
+  @Column({ type: 'float', nullable: false, default: 0 })
   paidAmount: number;
 
   @Column({
@@ -64,6 +70,8 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
       customer: this.customer?.toDTO(),
       trip: this.trip?.toDTO(),
       amount: this.amount,
+      subtotal: this.subtotal,
+      vatAmount: this.vatAmount,
       paidAmount: this.paidAmount,
       paymentStatus: this.paymentStatus,
       description: this.description,

@@ -22,6 +22,12 @@ export class Route extends BaseAppEntity<RouteModel> {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: true })
+  isVATZeroRated?: boolean;
+
+  @Column({ type: 'float', nullable: true, default: 18 })
+  vatPercentage?: number;
+
   toDTO(options?: { eager: boolean }): RouteModel {
     return {
       id: this.uid,
@@ -36,6 +42,8 @@ export class Route extends BaseAppEntity<RouteModel> {
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),
+      isVATZeroRated: this.isVATZeroRated,
+      vatPercentage: this.vatPercentage,
     };
   }
 }

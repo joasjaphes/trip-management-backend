@@ -18,6 +18,8 @@ export class ExpenseService {
         name: data.name,
         category: data.category,
         description: data.description,
+        parentId: data.parentId,
+        type: data.type,
         isActive: data.isActive ?? true,
       });
       const saved = await this.repository.save(payload);
@@ -38,6 +40,8 @@ export class ExpenseService {
       entity.name = data.name || entity.name;
       entity.category = data.category || entity.category;
       entity.description = data.description ?? entity.description;
+      entity.parentId = data.parentId ?? entity.parentId;
+      entity.type = data.type ?? entity.type;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

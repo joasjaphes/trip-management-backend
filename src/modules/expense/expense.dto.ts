@@ -16,6 +16,9 @@ export enum ExpenseType {
 export interface ExpenseModel extends BaseAppModel {
   name: string;
   category: ExpenseCategory;
+  parentId?: string;
+  parent?: ExpenseModel;
+  children?: ExpenseModel[];
   type: ExpenseType;
   description?: string;
   isActive: boolean;
@@ -35,6 +38,16 @@ export class CreateExpenseDTO extends BaseCreateAppDTO {
   @IsString()
   @ApiProperty({ example: 'Fuel purchase at station', required: false })
   description?: string;
+
+  @IsOptional()
+  @IsEnum(ExpenseType)
+  @ApiProperty({ enum: ExpenseType, example: ExpenseType.TRIP, required: false })
+  type?: ExpenseType;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'parent-expense-uid-123', required: false })
+  parentId?: string;
 
   @IsOptional()
   @IsBoolean()

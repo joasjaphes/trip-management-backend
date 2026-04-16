@@ -1,4 +1,4 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, VirtualColumn } from 'typeorm';
 import { BaseAppEntity } from '../../shared/base-app-entity';
 import { ExpenseCategory, ExpenseModel, ExpenseType } from './expense.dto';
 
@@ -6,6 +6,18 @@ import { ExpenseCategory, ExpenseModel, ExpenseType } from './expense.dto';
 export class Expense extends BaseAppEntity<ExpenseModel> {
   @Column({ nullable: false, length: 120 })
   name: string;
+
+  @Column({nullable: true})
+  parentId?: string;
+
+  @ManyToOne(() => Expense, { nullable: true })
+  @JoinColumn({ name: 'parentId', referencedColumnName: 'uid' })
+  parent?: Expense;
+
+  @VirtualColumn({
+    query:(alias) => `SELECT json_agg(child) FROM expenses child WHERE child."parentId" = ${alias}.uid`,
+  })
+  children?: Expense[];
 
   @Column({
     type: 'enum',
@@ -24,6 +36,8 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
   })
   type: ExpenseType;
 
+
+
   @Column({ default: true })
   isActive: boolean;
 
@@ -34,6 +48,9 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
       updatedAt: this.updatedAt.toISOString(),
       name: this.name,
       category: this.category,
+      parentId: this.parentId,
+      parent: this.parent ? this.parent.toDTO() : undefined,
+      children: this.children ? this.children.map(child => child.toDTO()) : undefined,
       type: this.type,
       description: this.description,
       isActive: this.isActive,

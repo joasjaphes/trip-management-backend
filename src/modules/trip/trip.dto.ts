@@ -38,6 +38,8 @@ export interface TripModel extends BaseAppModel {
   customerId?: string;
   customer?: CustomerModel;
   revenue: number;
+  vatAmount?: number;
+  subtotal?: number;
   paidAmount: number;
   income: number;
   expenses: TripExpenseModel[];
@@ -77,6 +79,20 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @IsNumber()
   @ApiProperty({ example: 1500000 })
   revenue: number;
+
+
+
+  @IsOptional()
+  @IsNumber()
+  @ApiProperty({ example: 0, required: false })
+  vatAmount?: number;
+
+
+
+  @IsOptional()
+  @IsNumber()
+  @ApiProperty({ example: 0, required: false })
+  subtotal?: number;
 
   @IsOptional()
   @IsNumber()

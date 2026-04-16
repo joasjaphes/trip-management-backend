@@ -15,6 +15,8 @@ export interface RouteModel extends BaseAppModel {
   startLocation?: string;
   endLocation?: string;
   estimatedDuration?: number;
+  isVATZeroRated?: boolean;
+  vatPercentage?: number;
   isActive: boolean;
 }
 
@@ -47,4 +49,14 @@ export class CreateRouteDTO extends BaseCreateAppDTO {
   @IsBoolean()
   @ApiProperty({ example: true, required: false })
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiProperty({ example: true, required: false })
+  isVATZeroRated?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @ApiProperty({ example: 18, required: false })
+  vatPercentage?: number;
 }

@@ -25,6 +25,11 @@ export class TripController {
     return this.tripService.getTripById(id);
   }
 
+  @Get('inProgress/count')
+  async getInprogressTripsCount(): Promise<{ count: number }> {
+    return await this.tripService.getInprogressTripsCount();
+  }
+
   @Post()
   @UsePipes(new ValidationPipe())
   async createTrip(@Body() data: CreateTripDTO): Promise<TripModel> {

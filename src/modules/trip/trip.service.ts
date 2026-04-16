@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Trip } from './trip.entity';
-import { CreateTripDTO, TripModel } from './trip.dto';
+import { CreateTripDTO, TripModel, TripStatus } from './trip.dto';
 import { Vehicle } from '../vehicle/vehicle.entity';
 import { Driver } from '../driver/driver.entity';
 import { Route } from '../route/route.entity';
@@ -31,7 +31,7 @@ export class TripService {
     private routeRepository: Repository<Route>,
     @InjectRepository(CargoType)
     private cargoTypeRepository: Repository<CargoType>,
-  ) {}
+  ) { }
 
   async createTrip(data: CreateTripDTO): Promise<TripModel> {
     try {
@@ -50,6 +50,15 @@ export class TripService {
           routeRepository,
           cargoTypeRepository,
         });
+
+        let vatAmount = 0;
+        let subtotal = data.revenue;
+        if (!route.isVATZeroRated) {
+          const vatPercentage = Number(route.vatPercentage) ?? 18;
+          const vatFactor = 1 + (vatPercentage / 100);
+          subtotal = Number(data.revenue) / Number(vatFactor);
+          vatAmount = Number(data.revenue) - subtotal;
+        }
 
         let customer = await customerRepository.findOne({
           where: { tin: data.customerTIN },
@@ -83,6 +92,8 @@ export class TripService {
           cargoTypeUid: data.cargoTypeId,
           revenue: data.revenue,
           paidAmount,
+          subtotal,
+          vatAmount,
           income: data.income,
           status: data.status,
           customerUid: customer.uid,
@@ -96,6 +107,8 @@ export class TripService {
           customerUid: customer.uid,
           amount: saved.revenue,
           paidAmount,
+          subtotal,
+          vatAmount,
           paymentStatus:
             paidAmount <= 0
               ? InvoicePaymentStatus.UNPAID
@@ -241,6 +254,16 @@ export class TripService {
       return entities.map((entity) => entity.toDTO({ eager: true }));
     } catch (e) {
       Logger.error('Failed to get trips', e);
+      throw e;
+    }
+  }
+
+  async getInprogressTripsCount(): Promise<{ count: number }> {
+    try {
+      const count = await this.repository.count({ where: { status: TripStatus.IN_PROGRESS } });
+      return { count };
+    } catch (e) {
+      Logger.error('Failed to get in-progress trips count', e);
       throw e;
     }
   }

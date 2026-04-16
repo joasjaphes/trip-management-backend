@@ -25,6 +25,8 @@ export interface InvoiceModel extends BaseAppModel {
   customer?: CustomerModel;
   trip?: TripModel;
   amount: number;
+  subtotal: number;
+  vatAmount?: number;
   paidAmount: number;
   paymentStatus: InvoicePaymentStatus;
   description?: string;
@@ -46,4 +48,12 @@ export class CreateInvoiceDTO extends BaseCreateAppDTO {
   @IsOptional()
   @ApiProperty({ example: 0, required: false })
   paidAmount?: number;
+
+  @IsOptional()
+  @ApiProperty({ example: 0, required: false })
+  subtotal?: number;
+
+  @IsOptional()
+  @ApiProperty({ example: 0, required: false })
+  vatAmount?: number;
 }

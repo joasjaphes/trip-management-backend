@@ -21,6 +21,8 @@ export class RouteService {
         endLocation: data.endLocation,
         estimatedDuration: data.estimatedDuration,
         isActive: data.isActive ?? true,
+        isVATZeroRated: data.isVATZeroRated ?? true,
+        vatPercentage: data.vatPercentage ?? 18,
       });
       const saved = await this.repository.save(payload);
       return saved.toDTO();
@@ -42,6 +44,8 @@ export class RouteService {
       entity.startLocation = data.startLocation ?? entity.startLocation;
       entity.endLocation = data.endLocation ?? entity.endLocation;
       entity.estimatedDuration = data.estimatedDuration ?? entity.estimatedDuration;
+      entity.isVATZeroRated = data.isVATZeroRated ?? entity.isVATZeroRated;
+      entity.vatPercentage = data.vatPercentage ?? entity.vatPercentage;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

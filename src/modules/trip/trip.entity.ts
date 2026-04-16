@@ -10,7 +10,7 @@ import { Customer } from '../customer/customer.entity';
 
 @Entity('trips')
 export class Trip extends BaseAppEntity<TripModel> {
-  @Column({ nullable: false, length: 50, default:`TRP-${Date.now()}` })
+  @Column({ nullable: false, length: 50, default: `TRP-${Date.now()}` })
   tripReferenceNumber: string;
 
   @Column({ type: 'timestamptz', nullable: false })
@@ -33,6 +33,11 @@ export class Trip extends BaseAppEntity<TripModel> {
 
   @Column({ type: 'float', nullable: false })
   revenue: number;
+
+  @Column({ type: 'float', nullable: true, default: 0 })
+  vatAmount?: number;
+  @Column({ type: 'float', nullable: true, default: 0 })
+  subtotal?: number;
 
   @Column({ type: 'float', nullable: false, default: 0 })
   paidAmount: number;
@@ -58,7 +63,7 @@ export class Trip extends BaseAppEntity<TripModel> {
   @JoinColumn({ name: 'driverUid', referencedColumnName: 'uid' })
   driver: Driver;
 
-  @ManyToOne(() => Route, { nullable: false, eager:true })
+  @ManyToOne(() => Route, { nullable: false, eager: true })
   @JoinColumn({ name: 'routeUid', referencedColumnName: 'uid' })
   route: Route;
 
@@ -94,6 +99,8 @@ export class Trip extends BaseAppEntity<TripModel> {
       customerId: this.customerUid,
       customer: this.customer?.toDTO(),
       revenue: this.revenue,
+      vatAmount: this.vatAmount,
+      subtotal: this.subtotal,
       paidAmount: this.paidAmount,
       income: this.income,
       expenses: eager ? (this.expenses ?? []).map((expense) => expense.toDTO()) : [],
