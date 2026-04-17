@@ -56,7 +56,7 @@ export class ExpenseService {
 
   async getAllExpenses(): Promise<ExpenseModel[]> {
     try {
-      const entities = await this.repository.find();
+      const entities = await this.repository.find({relations: ['parent', 'children']});
       return entities.map((entity) => entity.toDTO());
     } catch (e) {
       Logger.error('Failed to get expenses', e);
@@ -66,7 +66,7 @@ export class ExpenseService {
 
   async getExpenseById(id: string): Promise<ExpenseModel> {
     try {
-      const entity = await this.repository.findOne({ where: { uid: id } });
+      const entity = await this.repository.findOne({ where: { uid: id }, relations: ['parent', 'children'] });
       if (!entity) {
         throw new NotFoundException(`Expense with ID ${id} not found`);
       }

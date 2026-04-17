@@ -22,6 +22,7 @@ export interface ExpenseModel extends BaseAppModel {
   type: ExpenseType;
   description?: string;
   isActive: boolean;
+  status?: string;
 }
 
 export class CreateExpenseDTO extends BaseCreateAppDTO {
