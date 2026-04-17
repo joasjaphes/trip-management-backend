@@ -87,6 +87,9 @@ export class TripService {
           tripDate: new Date(data.tripDate),
           endDate: data.endDate ? new Date(data.endDate) : undefined,
           vehicleUid: data.vehicleId,
+          trailerUid: data.trailerId,
+          docNumber: data.docNumber,
+          cargoQuantity: data.cargoQuantity,
           driverUid: data.driverId,
           routeUid: data.routeId,
           cargoTypeUid: data.cargoTypeId,
@@ -203,9 +206,12 @@ export class TripService {
         entity.tripDate = data.tripDate ? new Date(data.tripDate) : entity.tripDate;
         entity.endDate = data.endDate ? new Date(data.endDate) : entity.endDate;
         entity.vehicleUid = data.vehicleId || entity.vehicleUid;
+        entity.trailerUid = data.trailerId || entity.trailerUid;
+        entity.docNumber = data.docNumber || entity.docNumber;
         entity.driverUid = data.driverId || entity.driverUid;
         entity.routeUid = data.routeId || entity.routeUid;
         entity.cargoTypeUid = data.cargoTypeId || entity.cargoTypeUid;
+        entity.cargoQuantity = data.cargoQuantity ?? entity.cargoQuantity;
         entity.revenue = nextRevenue;
         entity.paidAmount = nextPaidAmount;
         entity.income = data.income ?? entity.income;

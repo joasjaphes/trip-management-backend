@@ -16,6 +16,7 @@ export class CargoTypeService {
       const payload = this.repository.create({
         uid: data.id,
         name: data.name,
+        unitOfMeasure: data.unitOfMeasure ?? 'Tons',
         isActive: data.isActive ?? true,
       });
       const saved = await this.repository.save(payload);
@@ -34,11 +35,13 @@ export class CargoTypeService {
       }
 
       entity.name = data.name || entity.name;
+      entity.unitOfMeasure = data.unitOfMeasure || 'Tons';
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }
 
       const updated = await this.repository.save(entity);
+      console.log('Updated entity:', updated);
       return updated.toDTO();
     } catch (e) {
       Logger.error('Failed to update cargo type', e);

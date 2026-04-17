@@ -38,6 +38,12 @@ export class CargoSeed {
                 isActive: true,
             });
 
+            if(cargoName === 'Fuel') {
+                cargo.unitOfMeasure = 'Litres';
+            }else {
+                cargo.unitOfMeasure = 'Tons';
+            }
+
             await this.cargoTypeRepository.save(cargo);
 
             this.logger.log(`Cargo type created: ${cargoName}`);

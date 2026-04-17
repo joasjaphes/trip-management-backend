@@ -5,6 +5,7 @@ import { BaseCreateAppDTO } from '../../shared/base-create-app.dto';
 
 export interface CargoTypeModel extends BaseAppModel {
   name: string;
+  unitOfMeasure?: string;
   isActive: boolean;
 }
 
@@ -13,6 +14,11 @@ export class CreateCargoTypeDTO extends BaseCreateAppDTO {
   @IsNotEmpty()
   @ApiProperty({ example: 'Perishable' })
   name: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'kg', required: false })
+  unitOfMeasure?: string;
 
   @IsOptional()
   @IsBoolean()

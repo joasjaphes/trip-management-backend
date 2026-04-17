@@ -26,6 +26,8 @@ export class DriverService {
         licenseExpiryDate: new Date(data.licenseExpiryDate),
         licenseClass: data.licenseClass,
         licenseFrontPagePhoto: data.licenseFrontPagePhoto,
+        passportExpiryDate: data.passportExpiryDate ? new Date(data.passportExpiryDate) : undefined,
+        passportNumber: data.passportNumber,
         driverPhoto: data.driverPhoto,
         isActive: data.isActive ?? true,
       });
@@ -63,6 +65,10 @@ export class DriverService {
       entity.licenseFrontPagePhoto =
         data.licenseFrontPagePhoto ?? entity.licenseFrontPagePhoto;
       entity.driverPhoto = data.driverPhoto ?? entity.driverPhoto;
+      entity.passportExpiryDate = data.passportExpiryDate
+        ? new Date(data.passportExpiryDate)
+        : entity.passportExpiryDate;
+      entity.passportNumber = data.passportNumber ?? entity.passportNumber;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

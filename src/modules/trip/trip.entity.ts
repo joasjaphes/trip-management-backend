@@ -28,8 +28,23 @@ export class Trip extends BaseAppEntity<TripModel> {
   @Column({ nullable: false })
   routeUid: string;
 
+  @Column({ nullable: true })
+  trailerUid?: string;
+
   @Column({ nullable: false })
   cargoTypeUid: string;
+
+  @Column({ nullable: true })
+  cargoQuantity?: number;
+  
+  @Column({ nullable: true, type: 'text' })
+  tripDocument?: string;
+
+  @Column({ nullable: true, type: 'text' })
+  docNumber?: string;
+
+  @Column({ nullable: true, type: 'text' })
+  completionDocument?: string;
 
   @Column({ type: 'float', nullable: false })
   revenue: number;
@@ -58,6 +73,11 @@ export class Trip extends BaseAppEntity<TripModel> {
   @ManyToOne(() => Vehicle, { nullable: false })
   @JoinColumn({ name: 'vehicleUid', referencedColumnName: 'uid' })
   vehicle: Vehicle;
+
+  @ManyToOne(() => Vehicle, { nullable: true })
+  @JoinColumn({ name: 'trailerUid', referencedColumnName: 'uid' })
+  trailer: Vehicle;
+
 
   @ManyToOne(() => Driver, { nullable: false })
   @JoinColumn({ name: 'driverUid', referencedColumnName: 'uid' })
@@ -89,13 +109,17 @@ export class Trip extends BaseAppEntity<TripModel> {
       tripDate: this.tripDate.toISOString(),
       endDate: this.endDate?.toISOString(),
       vehicle: this.vehicle?.toDTO(),
+      trailer: this.trailer ? this.trailer.toDTO() : undefined,
       driver: this.driver?.toDTO(),
       route: this.route?.toDTO(),
       cargoType: this.cargoType?.toDTO(),
       vehicleId: this.vehicleUid,
+      trailerId: this.trailerUid,
       driverId: this.driverUid,
       routeId: this.routeUid,
       cargoTypeId: this.cargoTypeUid,
+      cargoQuantity: this.cargoQuantity,
+      docNumber: this.docNumber,
       customerId: this.customerUid,
       customer: this.customer?.toDTO(),
       revenue: this.revenue,
@@ -104,6 +128,8 @@ export class Trip extends BaseAppEntity<TripModel> {
       paidAmount: this.paidAmount,
       income: this.income,
       expenses: eager ? (this.expenses ?? []).map((expense) => expense.toDTO()) : [],
+      tripDocument: this.tripDocument,
+      completionDocument: this.completionDocument,
       status: this.status,
       active: this.active,
       deleted: this.deleted,

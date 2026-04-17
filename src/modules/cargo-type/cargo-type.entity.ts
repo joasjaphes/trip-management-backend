@@ -7,8 +7,12 @@ export class CargoType extends BaseAppEntity<CargoTypeModel> {
   @Column({ nullable: false, length: 120 })
   name: string;
 
+  @Column({ nullable: true, length: 20, default: 'Tons' })
+  unitOfMeasure?: string;
+
   @Column({ default: true })
   isActive: boolean;
+
 
   toDTO(options?: { eager: boolean }): CargoTypeModel {
     return {
@@ -16,6 +20,7 @@ export class CargoType extends BaseAppEntity<CargoTypeModel> {
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
       name: this.name,
+      unitOfMeasure: this.unitOfMeasure,
       isActive: this.isActive,
       active: this.active,
       deleted: this.deleted,

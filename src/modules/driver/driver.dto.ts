@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsBoolean,
+  IsDate,
   IsDateString,
   IsEmail,
   IsNotEmpty,
@@ -20,6 +21,8 @@ export interface DriverModel extends BaseAppModel {
   licenseNumber: string;
   licenseIssueDate: string;
   licenseExpiryDate: string;
+  passportNumber?: string;
+  passportExpiryDate?: string;
   licenseClass: string;
   licenseFrontPagePhoto?: string;
   driverPhoto?: string;
@@ -69,6 +72,15 @@ export class CreateDriverDTO extends BaseCreateAppDTO {
   @IsDateString()
   @ApiProperty({ example: '2029-01-01' })
   licenseExpiryDate: string;
+
+  @IsDateString()
+  @ApiProperty({ example: '2025-01-01', required: false })
+  passportExpiryDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'PPT-12345', required: false })
+  passportNumber?: string;
 
   @IsString()
   @IsNotEmpty()

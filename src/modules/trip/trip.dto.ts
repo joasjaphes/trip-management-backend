@@ -17,10 +17,10 @@ import { CargoTypeModel } from '../cargo-type/cargo-type.dto';
 import { CustomerModel } from '../customer/customer.dto';
 
 export enum TripStatus {
- 	PENDING = 'Pending payment',
-	IN_PROGRESS = 'Inprogress',
-	COMPLETED = 'Completed',
-	CANCELLED = 'Cancelled'
+  PENDING = 'Pending payment',
+  IN_PROGRESS = 'Inprogress',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled'
 }
 
 export interface TripModel extends BaseAppModel {
@@ -28,11 +28,17 @@ export interface TripModel extends BaseAppModel {
   tripDate: string;
   endDate?: string;
   vehicleId: string;
+  trailerId?: string;
   driverId: string;
   driver?: DriverModel;
   route?: RouteModel;
   vehicle?: VehicleModel;
+  trailer?: VehicleModel;
   cargoType?: CargoTypeModel;
+  cargoQuantity?: number;
+  docNumber?: string;
+  tripDocument?: string;
+  completionDocument?: string;
   routeId: string;
   cargoTypeId: string;
   customerId?: string;
@@ -87,8 +93,6 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @ApiProperty({ example: 0, required: false })
   vatAmount?: number;
 
-
-
   @IsOptional()
   @IsNumber()
   @ApiProperty({ example: 0, required: false })
@@ -117,6 +121,36 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @IsOptional()
   @ApiProperty({ example: '+255700000000', required: false })
   customerPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'trailer-uid-123', required: false })
+  trailerId?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'cargo-uid-123', required: false })
+  cargoId?: string;
+
+  @IsString()  @IsOptional()
+  @ApiProperty({ example: '1000', required: false })
+  cargoQuantity?: number;
+
+  @IsString() 
+  @IsOptional()
+  @ApiProperty({ example: 'DOC-12345', required: false })
+  docNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: '/uploads/trip-documents/doc-12345.pdf', required: false })
+  tripDocument?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: '/uploads/trip-documents/completion-doc-12345.pdf', required: false })
+  completionDocument?: string;
+
 
   @IsEnum(TripStatus)
   @ApiProperty({ enum: TripStatus, example: TripStatus.PENDING })

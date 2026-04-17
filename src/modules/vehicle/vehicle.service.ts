@@ -17,6 +17,7 @@ export class VehicleService {
         uid: data.id,
         registrationNo: data.registrationNo,
         model: data.model,
+        type: data.type,
         registrationYear: data.registrationYear,
         tankCapacity: data.tankCapacity,
         mileagePerFullTank: data.mileagePerFullTank,
@@ -43,6 +44,7 @@ export class VehicleService {
       entity.mileagePerFullTank =
         data.mileagePerFullTank ?? entity.mileagePerFullTank;
       entity.model = data.model ?? entity.model;
+      entity.type = data.type ?? entity.type;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

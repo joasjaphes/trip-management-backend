@@ -31,6 +31,12 @@ export class Driver extends BaseAppEntity<DriverModel> {
   @Column({ nullable: false, type: 'date' })
   licenseExpiryDate: Date;
 
+  @Column({ nullable: true, length: 80 })
+  passportNumber?: string;
+
+  @Column({ nullable: true, type: 'date' })
+  passportExpiryDate?: Date;
+
   @Column({ nullable: false, length: 40 })
   licenseClass: string;
 
@@ -57,6 +63,8 @@ export class Driver extends BaseAppEntity<DriverModel> {
       licenseNumber: this.licenseNumber,
       licenseIssueDate: new Date(this.licenseIssueDate).toISOString(),
       licenseExpiryDate: new Date(this.licenseExpiryDate).toISOString(),
+      passportNumber: this.passportNumber,
+      passportExpiryDate: this.passportExpiryDate ? new Date(this.passportExpiryDate)?.toISOString() : '',
       licenseClass: this.licenseClass,
       licenseFrontPagePhoto: this.licenseFrontPagePhoto,
       driverPhoto: this.driverPhoto,
