@@ -18,6 +18,11 @@ export class VehicleService {
         registrationNo: data.registrationNo,
         model: data.model,
         type: data.type,
+        trailerType: data.trailerType,
+        trailerDimensions: data.trailerDimensions,
+        trailerWeightLimits: data.trailerWeightLimits,
+        trailerAxles: data.trailerAxles,
+        trailerSuspension: data.trailerSuspension,
         registrationYear: data.registrationYear,
         tankCapacity: data.tankCapacity,
         mileagePerFullTank: data.mileagePerFullTank,
@@ -45,6 +50,14 @@ export class VehicleService {
         data.mileagePerFullTank ?? entity.mileagePerFullTank;
       entity.model = data.model ?? entity.model;
       entity.type = data.type ?? entity.type;
+      entity.trailerType = data.trailerType ?? entity.trailerType;
+      entity.trailerDimensions =
+        data.trailerDimensions ?? entity.trailerDimensions;
+      entity.trailerWeightLimits =
+        data.trailerWeightLimits ?? entity.trailerWeightLimits;
+      entity.trailerAxles = data.trailerAxles ?? entity.trailerAxles;
+      entity.trailerSuspension =
+        data.trailerSuspension ?? entity.trailerSuspension;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

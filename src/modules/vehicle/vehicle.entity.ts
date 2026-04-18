@@ -18,6 +18,20 @@ export class Vehicle extends BaseAppEntity<VehicleModel> {
   @Column({ type: 'enum', enum: VehicleType, nullable: false, default: VehicleType.TRUCK })
   type: VehicleType;
 
+  @Column({ nullable: true })
+  trailerType?: string;
+
+  @Column({ nullable: true })
+  trailerDimensions?: string;
+
+  @Column({ nullable: true })
+  trailerWeightLimits?: string;
+
+  @Column({ nullable: true })
+  trailerAxles?: string;
+
+  @Column({ nullable: true })
+  trailerSuspension?: string;
 
   @Column({ type: 'float', nullable: true })
   mileagePerFullTank: number;
@@ -45,6 +59,11 @@ export class Vehicle extends BaseAppEntity<VehicleModel> {
       registrationYear: this.registrationYear,
       tankCapacity: this.tankCapacity,
       type: this.type,
+      trailerType: this.trailerType,
+      trailerDimensions: this.trailerDimensions,
+      trailerWeightLimits: this.trailerWeightLimits,
+      trailerAxles: this.trailerAxles,
+      trailerSuspension: this.trailerSuspension,
       mileagePerFullTank: this.mileagePerFullTank,
       model: this.model,
       permits: eager ? (this.permits ?? []).map((permit) => permit.toDTO()) : [],

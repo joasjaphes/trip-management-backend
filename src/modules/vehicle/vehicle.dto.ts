@@ -22,6 +22,11 @@ export interface VehicleModel extends BaseAppModel {
   registrationYear?: number;
   tankCapacity?: number;
   type: VehicleType;
+  trailerType?: string;
+  trailerDimensions?: string;
+  trailerWeightLimits?: string;
+  trailerAxles?: string;
+  trailerSuspension?: string;
   mileagePerFullTank?: number;
   permits: VehiclePermitModel[];
   isActive: boolean;
@@ -51,6 +56,31 @@ export class CreateVehicleDTO extends BaseCreateAppDTO {
   @IsEnum(VehicleType)
   @ApiProperty({ enum: VehicleType, example: VehicleType.TRUCK })
   type: VehicleType;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'Flatbed', required: false })
+  trailerType?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: '10m x 2.5m', required: false })
+  trailerDimensions?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: '5000kg', required: false })
+  trailerWeightLimits?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: '4', required: false })
+  trailerAxles?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'Hydraulic', required: false })
+  trailerSuspension?: string;
 
   @IsOptional()
   @IsNumber()
