@@ -33,6 +33,7 @@ export class CompanyProfileService {
         bankAccountNumber: data.bankAccountNumber,
         bankAccountName: data.bankAccountName,
         bankBranch: data.bankBranch,
+        bankSwiftCode: data.bankSwiftCode,
         postalAddress: data.postalAddress,
         description: data.description,
         isActive: data.isActive ?? true,
@@ -71,6 +72,7 @@ export class CompanyProfileService {
       entity.bankAccountNumber = data.bankAccountNumber || entity.bankAccountNumber;
       entity.bankAccountName = data.bankAccountName || entity.bankAccountName;
       entity.bankBranch = data.bankBranch || entity.bankBranch;
+      entity.bankSwiftCode = data.bankSwiftCode || entity.bankSwiftCode;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }
