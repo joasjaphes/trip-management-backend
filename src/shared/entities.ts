@@ -5,6 +5,7 @@ import { Driver } from '../modules/driver/driver.entity';
 import { Expense } from '../modules/expense/expense.entity';
 import { Invoice } from '../modules/invoice/invoice.entity';
 import { IssuingBody } from '../modules/issuing-body/issuing-body.entity';
+import { OffloadingPlace } from '../modules/offloading-place/offloading-place.entity';
 import { PermitRegistration } from '../modules/permit-registration/permit-registration.entity';
 import { Receipt } from '../modules/receipt/receipt.entity';
 import { Route } from '../modules/route/route.entity';
@@ -23,6 +24,7 @@ export const entities = [
   Expense,
   Invoice,
   IssuingBody,
+  OffloadingPlace,
   PermitRegistration,
   Receipt,
   Driver,

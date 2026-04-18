@@ -15,6 +15,7 @@ import { Driver } from '../driver/driver.entity';
 import { Route } from '../route/route.entity';
 import { CargoType } from '../cargo-type/cargo-type.entity';
 import { Customer } from '../customer/customer.entity';
+import { OffloadingPlace } from '../offloading-place/offloading-place.entity';
 import { Invoice } from '../invoice/invoice.entity';
 import { InvoicePaymentStatus, InvoiceStatus } from '../invoice/invoice.dto';
 
@@ -31,6 +32,8 @@ export class TripService {
     private routeRepository: Repository<Route>,
     @InjectRepository(CargoType)
     private cargoTypeRepository: Repository<CargoType>,
+    @InjectRepository(OffloadingPlace)
+    private offloadingPlaceRepository: Repository<OffloadingPlace>,
   ) { }
 
   async createTrip(data: CreateTripDTO): Promise<TripModel> {
@@ -81,6 +84,21 @@ export class TripService {
 
         const tripReferenceNumber = `TRP-${Date.now()}`;
 
+        let offloadingPlaceUid: string | undefined;
+        if (data.offloadingPlaceName) {
+          let offloadingPlace = await manager.getRepository(OffloadingPlace).findOne({
+            where: { name: data.offloadingPlaceName },
+          });
+          if (!offloadingPlace) {
+            offloadingPlace = manager.getRepository(OffloadingPlace).create({
+              uid: randomUUID(),
+              name: data.offloadingPlaceName,
+            });
+            offloadingPlace = await manager.getRepository(OffloadingPlace).save(offloadingPlace);
+          }
+          offloadingPlaceUid = offloadingPlace.uid;
+        }
+
         const payload = tripRepository.create({
           uid: data.id,
           tripReferenceNumber,
@@ -100,6 +118,7 @@ export class TripService {
           income: data.income,
           status: data.status,
           customerUid: customer.uid,
+          offloadingPlaceUid,
         });
         const saved = await tripRepository.save(payload);
 
@@ -158,6 +177,22 @@ export class TripService {
         });
 
         let customerUid = entity.customerUid;
+        let offloadingPlaceUid = entity.offloadingPlaceUid;
+
+        if (data.offloadingPlaceName) {
+          let offloadingPlace = await manager.getRepository(OffloadingPlace).findOne({
+            where: { name: data.offloadingPlaceName },
+          });
+          if (!offloadingPlace) {
+            offloadingPlace = manager.getRepository(OffloadingPlace).create({
+              uid: randomUUID(),
+              name: data.offloadingPlaceName,
+            });
+            offloadingPlace = await manager.getRepository(OffloadingPlace).save(offloadingPlace);
+          }
+          offloadingPlaceUid = offloadingPlace.uid;
+        }
+
         if (data.customerTIN) {
           let customer = await customerRepository.findOne({
             where: { tin: data.customerTIN },
@@ -217,6 +252,7 @@ export class TripService {
         entity.income = data.income ?? entity.income;
         entity.status = data.status || entity.status;
         entity.customerUid = customerUid;
+        entity.offloadingPlaceUid = offloadingPlaceUid;
 
         const updated = await tripRepository.save(entity);
 
@@ -256,7 +292,7 @@ export class TripService {
 
   async getAllTrips(): Promise<TripModel[]> {
     try {
-      const entities = await this.repository.find({ relations: { expenses: true, vehicle: true, driver: true, route: true, cargoType: true, customer: true } });
+      const entities = await this.repository.find({ relations: { expenses: true, vehicle: true, driver: true, route: true, cargoType: true, customer: true, offloadingPlace: true } });
       return entities.map((entity) => entity.toDTO({ eager: true }));
     } catch (e) {
       Logger.error('Failed to get trips', e);
@@ -278,7 +314,7 @@ export class TripService {
     try {
       const entity = await this.repository.findOne({
         where: { uid: id },
-        relations: { expenses: true, customer: true },
+        relations: { expenses: true, customer: true, offloadingPlace: true   },
       });
       if (!entity) {
         throw new NotFoundException(`Trip with ID ${id} not found`);

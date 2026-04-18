@@ -46,6 +46,9 @@ export class CompanyProfile extends BaseAppEntity<CompanyProfileModel> {
   @Column({ nullable: true, length: 120 })
   bankBranch?: string;
 
+  @Column({ nullable: true, length: 120 })
+  bankSwiftCode?: string;
+
   @Column({ nullable: true, length: 255 })
   logo?: string;
 
@@ -72,6 +75,7 @@ export class CompanyProfile extends BaseAppEntity<CompanyProfileModel> {
       bankName: this.bankName,
       bankAccountNumber: this.bankAccountNumber,
       bankAccountName: this.bankAccountName,
+      bankSwiftCode: this.bankSwiftCode,
       bankBranch: this.bankBranch,
       active: this.active,
       deleted: this.deleted,

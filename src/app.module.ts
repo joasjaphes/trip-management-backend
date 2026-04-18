@@ -36,6 +36,8 @@ import { InvoiceController } from './modules/invoice/invoice.controller';
 import { InvoiceService } from './modules/invoice/invoice.service';
 import { IssuingBodyController } from './modules/issuing-body/issuing-body.controller';
 import { IssuingBodyService } from './modules/issuing-body/issuing-body.service';
+import { OffloadingPlaceController } from './modules/offloading-place/offloading-place.controller';
+import { OffloadingPlaceService } from './modules/offloading-place/offloading-place.service';
 import { ReceiptController } from './modules/receipt/receipt.controller';
 import { ReceiptService } from './modules/receipt/receipt.service';
 
@@ -89,6 +91,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     CustomerController,
     InvoiceController,
     IssuingBodyController,
+    OffloadingPlaceController,
     ReceiptController,
   ],
   providers: [
@@ -108,6 +111,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     CustomerService,
     InvoiceService,
     IssuingBodyService,
+    OffloadingPlaceService,
     ReceiptService,
   ],
 })

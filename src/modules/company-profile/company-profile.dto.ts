@@ -18,6 +18,7 @@ export interface CompanyProfileModel extends BaseAppModel {
   bankAccountNumber?: string;
   bankAccountName?: string;
   bankBranch?: string;
+  bankSwiftCode?: string;
   description?: string;
   isActive?: boolean;
 }
@@ -92,6 +93,11 @@ export class CreateCompanyProfileDTO extends BaseCreateAppDTO {
   @IsString()
   @ApiProperty({ example: 'NMB Branch', required: false })
   bankBranch?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'NMBTZT001', required: false })
+  bankSwiftCode?: string;
 
   @IsOptional()
   @IsBoolean()

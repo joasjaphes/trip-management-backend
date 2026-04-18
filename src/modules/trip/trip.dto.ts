@@ -15,6 +15,7 @@ import { RouteModel } from '../route/route.dto';
 import { VehicleModel } from '../vehicle/vehicle.dto';
 import { CargoTypeModel } from '../cargo-type/cargo-type.dto';
 import { CustomerModel } from '../customer/customer.dto';
+import { OffloadingPlaceModel } from '../offloading-place/offloading-place.dto';
 
 export enum TripStatus {
   PENDING = 'Pending payment',
@@ -43,6 +44,9 @@ export interface TripModel extends BaseAppModel {
   cargoTypeId: string;
   customerId?: string;
   customer?: CustomerModel;
+  offloadingPlaceId?: string;
+  offloadingPlace?: OffloadingPlaceModel;
+  offloadingPlaceName?: string;
   revenue: number;
   vatAmount?: number;
   subtotal?: number;
@@ -121,6 +125,11 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @IsOptional()
   @ApiProperty({ example: '+255700000000', required: false })
   customerPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'Dar es Salaam Port', required: false })
+  offloadingPlaceName?: string;
 
   @IsString()
   @IsOptional()
