@@ -292,7 +292,7 @@ export class TripService {
 
   async getAllTrips(): Promise<TripModel[]> {
     try {
-      const entities = await this.repository.find({ relations: { expenses: true, vehicle: true, driver: true, route: true, cargoType: true, customer: true, offloadingPlace: true } });
+      const entities = await this.repository.find({ relations: { expenses: true, vehicle: true, driver: true, route: true, cargoType: true, customer: true, offloadingPlace: true, trailer: true } });
       return entities.map((entity) => entity.toDTO({ eager: true }));
     } catch (e) {
       Logger.error('Failed to get trips', e);
@@ -314,7 +314,7 @@ export class TripService {
     try {
       const entity = await this.repository.findOne({
         where: { uid: id },
-        relations: { expenses: true, customer: true, offloadingPlace: true   },
+        relations: { expenses: true, customer: true, offloadingPlace: true, trailer: true, vehicle: true, driver: true, route: true, cargoType: true },
       });
       if (!entity) {
         throw new NotFoundException(`Trip with ID ${id} not found`);

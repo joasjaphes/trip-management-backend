@@ -24,6 +24,7 @@ import {
 import type { Response } from 'express';
 import { CurrentUserInterceptor } from '../../interceptors/current-user.interceptor';
 import { User } from './user.entity';
+import { Public } from '../../shared/decorators/public.decorator';
 
 @Controller('users')
 export class UserController {
@@ -99,6 +100,7 @@ export class UserController {
     res.status(200).send({ message: 'Password changed successfully' });
   }
 
+  @Public()
   @Post('/signin')
   async login(@Body() credentials: CredentialDTO) {
     return await this.userService.login(credentials);
