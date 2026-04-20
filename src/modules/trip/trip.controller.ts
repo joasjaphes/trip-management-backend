@@ -26,7 +26,7 @@ export class TripController {
     return this.tripService.getAllTrips();
   }
 
-  @Get('stats/summary')
+  @Get('stats')
   @UsePipes(new ValidationPipe({ transform: true }))
   async getTripSummaryStats(
     @Query() query: TripSummaryQueryDTO,
