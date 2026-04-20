@@ -131,25 +131,44 @@ export class TripService {
         });
         const saved = await tripRepository.save(payload);
 
-        const invoice = invoiceRepository.create({
-          uid: randomUUID(),
-          invoiceNumber: `INV-${Date.now()}`,
-          tripUid: saved.uid,
-          customerUid: customer.uid,
-          amount: saved.revenue,
-          paidAmount,
-          subtotal,
-          vatAmount,
-          paymentStatus:
-            paidAmount <= 0
-              ? InvoicePaymentStatus.UNPAID
-              : paidAmount >= saved.revenue
-                ? InvoicePaymentStatus.FULL_PAID
-                : InvoicePaymentStatus.PARTIALLY_PAID,
-          description: route.name,
-          status: InvoiceStatus.DRAFT,
-        });
-        await invoiceRepository.save(invoice);
+        const matchingInvoice = await this.findMatchingInvoiceForTrip(
+          customer.uid,
+          data.revenue,
+          data.routeId,
+          new Date(),
+        );
+
+        if (matchingInvoice) {
+          saved.invoiceUid = matchingInvoice.uid;
+          await tripRepository.save(saved);
+          await this.refreshInvoiceAggregates(
+            tripRepository,
+            invoiceRepository,
+            matchingInvoice,
+          );
+        } else {
+          const invoice = invoiceRepository.create({
+            uid: randomUUID(),
+            invoiceNumber: `INV-${Date.now()}`,
+            customerUid: customer.uid,
+            amount: saved.revenue,
+            paidAmount,
+            subtotal,
+            vatAmount,
+            quantity: 1,
+            paymentStatus:
+              paidAmount <= 0
+                ? InvoicePaymentStatus.UNPAID
+                : paidAmount >= saved.revenue
+                  ? InvoicePaymentStatus.FULL_PAID
+                  : InvoicePaymentStatus.PARTIALLY_PAID,
+            description: route.name,
+            status: InvoiceStatus.DRAFT,
+          });
+          const createdInvoice = await invoiceRepository.save(invoice);
+          saved.invoiceUid = createdInvoice.uid;
+          await tripRepository.save(saved);
+        }
 
         return saved.toDTO();
       });
@@ -268,30 +287,18 @@ export class TripService {
 
         const updated = await tripRepository.save(entity);
 
-        const invoice = await invoiceRepository.findOne({ where: { tripUid: entity.uid } });
-        if (invoice) {
-          if (invoice.paidAmount > updated.revenue) {
-            throw new BadRequestException(
-              'Trip revenue cannot be lower than already paid invoice amount',
+        if (updated.invoiceUid) {
+          const invoice = await invoiceRepository.findOne({
+            where: { uid: updated.invoiceUid },
+          });
+          if (invoice) {
+            invoice.customerUid = customerUid ?? invoice.customerUid;
+            await this.refreshInvoiceAggregates(
+              tripRepository,
+              invoiceRepository,
+              invoice,
             );
           }
-
-          invoice.customerUid = customerUid ?? invoice.customerUid;
-          invoice.amount = updated.revenue;
-          invoice.paymentStatus =
-            invoice.paidAmount <= 0
-              ? InvoicePaymentStatus.UNPAID
-              : invoice.paidAmount >= invoice.amount
-                ? InvoicePaymentStatus.FULL_PAID
-                : InvoicePaymentStatus.PARTIALLY_PAID;
-
-          if (invoice.paymentStatus === InvoicePaymentStatus.FULL_PAID) {
-            invoice.status = InvoiceStatus.PAID;
-          } else if (invoice.status === InvoiceStatus.PAID) {
-            invoice.status = InvoiceStatus.ISSUED;
-          }
-
-          await invoiceRepository.save(invoice);
         }
 
         return updated.toDTO();
@@ -441,5 +448,78 @@ export class TripService {
       );
     }
     return { vehicle, driver, route, cargoType };
+  }
+
+  private async findMatchingInvoiceForTrip(
+    customerUid: string,
+    invoiceAmount: number,
+    routeUid: string,
+    creationDate: Date,
+  ): Promise<Invoice | null> {
+    const matchedTrip = await this.repository
+      .createQueryBuilder('trip')
+      .leftJoinAndSelect('trip.invoice', 'invoice')
+      .where('trip.customerUid = :customerUid', { customerUid })
+      .andWhere('trip.routeUid = :routeUid', { routeUid })
+      .andWhere('trip.revenue = :invoiceAmount', { invoiceAmount })
+      .andWhere('DATE(trip.createdAt) = DATE(:creationDate)', { creationDate })
+      .andWhere('trip.invoiceUid IS NOT NULL')
+      .orderBy('trip.createdAt', 'DESC')
+      .getOne();
+    return matchedTrip?.invoice ?? null;
+  }
+
+  private async refreshInvoiceAggregates(
+    tripRepository: Repository<Trip>,
+    invoiceRepository: Repository<Invoice>,
+    invoice: Invoice,
+  ): Promise<void> {
+    const linkedTrips = await tripRepository.find({
+      where: { invoiceUid: invoice.uid },
+      relations: { route: true },
+      order: { createdAt: 'ASC' },
+    });
+
+    if (linkedTrips.length === 0) {
+      return;
+    }
+
+    invoice.amount = linkedTrips.reduce(
+      (sum, trip) => sum + Number(trip.revenue ?? 0),
+      0,
+    );
+    invoice.subtotal = linkedTrips.reduce(
+      (sum, trip) => sum + Number(trip.subtotal ?? 0),
+      0,
+    );
+    invoice.vatAmount = linkedTrips.reduce(
+      (sum, trip) => sum + Number(trip.vatAmount ?? 0),
+      0,
+    );
+    invoice.paidAmount = linkedTrips.reduce(
+      (sum, trip) => sum + Number(trip.paidAmount ?? 0),
+      0,
+    );
+    invoice.quantity = linkedTrips.length;
+
+    const routeNames = Array.from(
+      new Set(linkedTrips.map((trip) => trip.route?.name).filter(Boolean)),
+    ) as string[];
+    invoice.description = routeNames.join(', ');
+
+    invoice.paymentStatus =
+      invoice.paidAmount <= 0
+        ? InvoicePaymentStatus.UNPAID
+        : invoice.paidAmount >= invoice.amount
+          ? InvoicePaymentStatus.FULL_PAID
+          : InvoicePaymentStatus.PARTIALLY_PAID;
+
+    if (invoice.paymentStatus === InvoicePaymentStatus.FULL_PAID) {
+      invoice.status = InvoiceStatus.PAID;
+    } else if (invoice.status === InvoiceStatus.PAID) {
+      invoice.status = InvoiceStatus.ISSUED;
+    }
+
+    await invoiceRepository.save(invoice);
   }
 }

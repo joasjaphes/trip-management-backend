@@ -43,6 +43,7 @@ export interface TripModel extends BaseAppModel {
   routeId: string;
   cargoTypeId: string;
   customerId?: string;
+  invoiceId?: string;
   customer?: CustomerModel;
   offloadingPlaceId?: string;
   offloadingPlace?: OffloadingPlaceModel;

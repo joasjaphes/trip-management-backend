@@ -8,6 +8,7 @@ import { CargoType } from '../cargo-type/cargo-type.entity';
 import { TripExpense } from '../trip-expense/trip-expense.entity';
 import { Customer } from '../customer/customer.entity';
 import { OffloadingPlace } from '../offloading-place/offloading-place.entity';
+import { Invoice } from '../invoice/invoice.entity';
 
 @Entity('trips')
 export class Trip extends BaseAppEntity<TripModel> {
@@ -67,6 +68,9 @@ export class Trip extends BaseAppEntity<TripModel> {
   @Column({ nullable: true })
   offloadingPlaceUid?: string;
 
+  @Column({ nullable: true })
+  invoiceUid?: string;
+
   @Column({
     type: 'enum',
     enum: TripStatus,
@@ -110,6 +114,10 @@ export class Trip extends BaseAppEntity<TripModel> {
   @JoinColumn({ name: 'offloadingPlaceUid', referencedColumnName: 'uid' })
   offloadingPlace: OffloadingPlace;
 
+  @ManyToOne(() => Invoice, { nullable: true })
+  @JoinColumn({ name: 'invoiceUid', referencedColumnName: 'uid' })
+  invoice?: Invoice;
+
   toDTO(options?: { eager: boolean }): TripModel {
     const { eager = false } = options ?? {};
 
@@ -135,6 +143,7 @@ export class Trip extends BaseAppEntity<TripModel> {
       customerId: this.customerUid,
       customer: this.customer?.toDTO(),
       offloadingPlaceId: this.offloadingPlaceUid,
+      invoiceId: this.invoiceUid,
       offloadingPlaceName: this.offloadingPlace?.name,
       offloadingPlace: this.offloadingPlace?.toDTO(),
       revenue: this.revenue,

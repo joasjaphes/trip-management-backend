@@ -20,18 +20,21 @@ export enum InvoicePaymentStatus {
 
 export interface InvoiceModel extends BaseAppModel {
   invoiceNumber: string;
-  tripId: string;
+  tripIds: string[];
+  tripReferenceNumber?:string;
   customerId: string;
   customer?: CustomerModel;
-  trip?: TripModel;
+  trips?: TripModel[];
   amount: number;
   subtotal: number;
   vatAmount?: number;
   paidAmount: number;
   paymentStatus: InvoicePaymentStatus;
+  quantity: number;
   description?: string;
   status: InvoiceStatus;
   issuedAt?: string;
+  rate?: number;
 }
 
 export class CreateInvoiceDTO extends BaseCreateAppDTO {

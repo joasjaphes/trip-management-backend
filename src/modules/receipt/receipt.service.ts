@@ -66,14 +66,12 @@ export class ReceiptService {
         );
         if (invoice.paymentStatus === InvoicePaymentStatus.FULL_PAID) {
           invoice.status = InvoiceStatus.PAID;
+        } else if (invoice.status === InvoiceStatus.PAID) {
+          invoice.status = InvoiceStatus.ISSUED;
         }
         await invoiceRepository.save(invoice);
 
-        const trip = await tripRepository.findOne({ where: { uid: invoice.tripUid } });
-        if (trip) {
-          trip.paidAmount = nextPaidAmount;
-          await tripRepository.save(trip);
-        }
+        await this.syncTripsByInvoicePaymentStatus(tripRepository, invoice);
 
         const entity = await receiptRepository.findOne({
           where: { uid: saved.uid },
@@ -139,14 +137,12 @@ export class ReceiptService {
           );
           if (oldInvoice.paymentStatus === InvoicePaymentStatus.FULL_PAID) {
             oldInvoice.status = InvoiceStatus.PAID;
+          } else if (oldInvoice.status === InvoiceStatus.PAID) {
+            oldInvoice.status = InvoiceStatus.ISSUED;
           }
           await invoiceRepository.save(oldInvoice);
 
-          const trip = await tripRepository.findOne({ where: { uid: oldInvoice.tripUid } });
-          if (trip) {
-            trip.paidAmount = oldInvoice.paidAmount;
-            await tripRepository.save(trip);
-          }
+          await this.syncTripsByInvoicePaymentStatus(tripRepository, oldInvoice);
         } else {
           const oldInvoicePaidAmount = oldInvoice.paidAmount - existing.amount;
           if (oldInvoicePaidAmount < 0) {
@@ -167,6 +163,8 @@ export class ReceiptService {
           );
           if (oldInvoice.paymentStatus === InvoicePaymentStatus.FULL_PAID) {
             oldInvoice.status = InvoiceStatus.PAID;
+          } else if (oldInvoice.status === InvoiceStatus.PAID) {
+            oldInvoice.status = InvoiceStatus.ISSUED;
           }
 
           targetInvoice.paidAmount = targetInvoicePaidAmount;
@@ -176,24 +174,15 @@ export class ReceiptService {
           );
           if (targetInvoice.paymentStatus === InvoicePaymentStatus.FULL_PAID) {
             targetInvoice.status = InvoiceStatus.PAID;
+          } else if (targetInvoice.status === InvoiceStatus.PAID) {
+            targetInvoice.status = InvoiceStatus.ISSUED;
           }
 
           await invoiceRepository.save(oldInvoice);
           await invoiceRepository.save(targetInvoice);
 
-          const [oldTrip, targetTrip] = await Promise.all([
-            tripRepository.findOne({ where: { uid: oldInvoice.tripUid } }),
-            tripRepository.findOne({ where: { uid: targetInvoice.tripUid } }),
-          ]);
-
-          if (oldTrip) {
-            oldTrip.paidAmount = oldInvoice.paidAmount;
-            await tripRepository.save(oldTrip);
-          }
-          if (targetTrip) {
-            targetTrip.paidAmount = targetInvoice.paidAmount;
-            await tripRepository.save(targetTrip);
-          }
+          await this.syncTripsByInvoicePaymentStatus(tripRepository, oldInvoice);
+          await this.syncTripsByInvoicePaymentStatus(tripRepository, targetInvoice);
         }
 
         existing.invoiceUid = targetInvoiceUid;
@@ -255,5 +244,28 @@ export class ReceiptService {
       return InvoicePaymentStatus.FULL_PAID;
     }
     return InvoicePaymentStatus.PARTIALLY_PAID;
+  }
+
+  private async syncTripsByInvoicePaymentStatus(
+    tripRepository: Repository<Trip>,
+    invoice: Invoice,
+  ): Promise<void> {
+    if (invoice.paymentStatus !== InvoicePaymentStatus.FULL_PAID) {
+      return;
+    }
+
+    const linkedTrips = await tripRepository.find({
+      where: { invoiceUid: invoice.uid },
+    });
+
+    if (!linkedTrips.length) {
+      return;
+    }
+
+    for (const trip of linkedTrips) {
+      trip.paidAmount = trip.revenue;
+    }
+
+    await tripRepository.save(linkedTrips);
   }
 }
