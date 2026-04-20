@@ -35,7 +35,8 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
   })
   type: ExpenseType;
 
-
+  @Column({ default: false })
+  isPurchase: boolean;
 
   @Column({ default: true })
   isActive: boolean;
@@ -49,6 +50,7 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
       category: this.category,
       parentId: this.parentId,
       parent: this.parent ? this.parent.toDTO() : undefined,
+      isPurchase: this.isPurchase,
       children: this.children ? this.children.map(child => child?.toDTO()) : undefined,
       type: this.type,
       description: this.description,

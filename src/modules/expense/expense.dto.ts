@@ -21,6 +21,7 @@ export interface ExpenseModel extends BaseAppModel {
   children?: ExpenseModel[];
   type: ExpenseType;
   description?: string;
+  isPurchase?: boolean;
   isActive: boolean;
   status?: string;
 }
@@ -54,4 +55,9 @@ export class CreateExpenseDTO extends BaseCreateAppDTO {
   @IsBoolean()
   @ApiProperty({ example: true, required: false })
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiProperty({ example: false, required: false })
+  isPurchase?: boolean;
 }
