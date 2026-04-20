@@ -117,6 +117,9 @@ export class TripService {
           vatAmount,
           income: data.income,
           status: data.status,
+          notes: data.notes,
+          tripDocument: data.tripDocument,
+          completionDocument: data.completionDocument,
           customerUid: customer.uid,
           offloadingPlaceUid,
         });
@@ -253,6 +256,9 @@ export class TripService {
         entity.status = data.status || entity.status;
         entity.customerUid = customerUid;
         entity.offloadingPlaceUid = offloadingPlaceUid;
+        entity.notes = data.notes ?? entity.notes;
+        entity.tripDocument = data.tripDocument ?? entity.tripDocument;
+        entity.completionDocument = data.completionDocument ?? entity.completionDocument;
 
         const updated = await tripRepository.save(entity);
 

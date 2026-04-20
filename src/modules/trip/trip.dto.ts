@@ -54,6 +54,7 @@ export interface TripModel extends BaseAppModel {
   income: number;
   expenses: TripExpenseModel[];
   status: TripStatus;
+  notes?: string;
 }
 
 export class CreateTripDTO extends BaseCreateAppDTO {
@@ -141,8 +142,9 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @ApiProperty({ example: 'cargo-uid-123', required: false })
   cargoId?: string;
 
-  @IsString()  @IsOptional()
-  @ApiProperty({ example: '1000', required: false })
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ example: 1000, required: false })
   cargoQuantity?: number;
 
   @IsString() 
@@ -164,4 +166,8 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @IsEnum(TripStatus)
   @ApiProperty({ enum: TripStatus, example: TripStatus.PENDING })
   status: TripStatus;
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'Urgent delivery, handle with care', required: false })
+  notes?: string;
 }

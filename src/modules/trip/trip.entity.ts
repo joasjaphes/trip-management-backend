@@ -74,6 +74,10 @@ export class Trip extends BaseAppEntity<TripModel> {
   })
   status: TripStatus;
 
+  @Column({ nullable: true, type: 'text' })
+  notes?: string;
+
+
   @ManyToOne(() => Vehicle, { nullable: false })
   @JoinColumn({ name: 'vehicleUid', referencedColumnName: 'uid' })
   vehicle: Vehicle;
@@ -142,6 +146,7 @@ export class Trip extends BaseAppEntity<TripModel> {
       tripDocument: this.tripDocument,
       completionDocument: this.completionDocument,
       status: this.status,
+      notes: this.notes,
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),
