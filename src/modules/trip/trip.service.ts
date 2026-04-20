@@ -9,7 +9,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Trip } from './trip.entity';
-import { CreateTripDTO, TripModel, TripStatus } from './trip.dto';
+import {
+  CreateTripDTO,
+  TripModel,
+  TripStatus,
+  TripSummaryQueryDTO,
+  TripSummaryStats,
+} from './trip.dto';
 import { Vehicle } from '../vehicle/vehicle.entity';
 import { Driver } from '../driver/driver.entity';
 import { Route } from '../route/route.entity';
@@ -312,6 +318,73 @@ export class TripService {
       return { count };
     } catch (e) {
       Logger.error('Failed to get in-progress trips count', e);
+      throw e;
+    }
+  }
+
+  async getTripSummaryStats(query: TripSummaryQueryDTO): Promise<TripSummaryStats> {
+    try {
+      const startDate = new Date(query.startDate);
+      const endDate = new Date(query.endDate);
+
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+        throw new BadRequestException('startDate and endDate must be valid date strings');
+      }
+
+      if (startDate > endDate) {
+        throw new BadRequestException('startDate cannot be later than endDate');
+      }
+
+      const tripsInRange = await this.repository
+        .createQueryBuilder('trip')
+        .where('trip.tripDate >= :startDate', { startDate })
+        .andWhere('trip.tripDate <= :endDate', { endDate })
+        .getMany();
+
+      const totalTrips = tripsInRange.length;
+      const totalRevenue = tripsInRange.reduce(
+        (sum, trip) => sum + Number(trip.revenue ?? 0),
+        0,
+      );
+      const inProgressTrips = tripsInRange.filter(
+        (trip) => trip.status === TripStatus.IN_PROGRESS,
+      ).length;
+      const completedTrips = tripsInRange.filter(
+        (trip) => trip.status === TripStatus.COMPLETED,
+      ).length;
+      const outstandingAmount = tripsInRange.reduce((sum, trip) => {
+        const revenue = Number(trip.revenue ?? 0);
+        const paidAmount = Number(trip.paidAmount ?? 0);
+        return sum + Math.max(revenue - paidAmount, 0);
+      }, 0);
+
+      const recentTripsEntities = await this.repository.find({
+        where: { status: TripStatus.IN_PROGRESS },
+        relations: {
+          expenses: true,
+          vehicle: true,
+          driver: true,
+          route: true,
+          cargoType: true,
+          customer: true,
+          offloadingPlace: true,
+          trailer: true,
+        },
+        order: { createdAt: 'DESC' },
+        take: 3,
+      });
+
+      return {
+        totalRevenue,
+        totalTrips,
+        activeTrips: inProgressTrips,
+        outstandingAmount,
+        completedTrips,
+        inProgressTrips,
+        recentTrips: recentTripsEntities.map((trip) => trip.toDTO({ eager: true })),
+      };
+    } catch (e) {
+      Logger.error('Failed to get trip summary stats', e);
       throw e;
     }
   }

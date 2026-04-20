@@ -57,6 +57,26 @@ export interface TripModel extends BaseAppModel {
   notes?: string;
 }
 
+export interface TripSummaryStats {
+  totalRevenue: number;
+  totalTrips: number;
+  activeTrips: number;
+  outstandingAmount: number;
+  completedTrips: number;
+  inProgressTrips: number;
+  recentTrips: TripModel[];
+}
+
+export class TripSummaryQueryDTO {
+  @IsDateString()
+  @ApiProperty({ example: '2026-03-01T00:00:00.000Z' })
+  startDate: string;
+
+  @IsDateString()
+  @ApiProperty({ example: '2026-03-31T23:59:59.999Z' })
+  endDate: string;
+}
+
 export class CreateTripDTO extends BaseCreateAppDTO {
   @IsDateString()
   @ApiProperty({ example: '2026-03-07T10:00:00.000Z' })

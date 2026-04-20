@@ -4,12 +4,18 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Put,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { TripService } from './trip.service';
-import { CreateTripDTO, TripModel } from './trip.dto';
+import {
+  CreateTripDTO,
+  TripModel,
+  TripSummaryQueryDTO,
+  TripSummaryStats,
+} from './trip.dto';
 
 @Controller('trips')
 export class TripController {
@@ -20,14 +26,22 @@ export class TripController {
     return this.tripService.getAllTrips();
   }
 
-  @Get('/:id')
-  async getTripById(@Param('id') id: string): Promise<TripModel> {
-    return this.tripService.getTripById(id);
+  @Get('stats/summary')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getTripSummaryStats(
+    @Query() query: TripSummaryQueryDTO,
+  ): Promise<TripSummaryStats> {
+    return this.tripService.getTripSummaryStats(query);
   }
 
   @Get('inProgress/count')
   async getInprogressTripsCount(): Promise<{ count: number }> {
     return await this.tripService.getInprogressTripsCount();
+  }
+
+  @Get('/:id')
+  async getTripById(@Param('id') id: string): Promise<TripModel> {
+    return this.tripService.getTripById(id);
   }
 
   @Post()
