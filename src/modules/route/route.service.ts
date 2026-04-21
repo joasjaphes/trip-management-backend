@@ -13,16 +13,21 @@ export class RouteService {
 
   async createRoute(data: CreateRouteDTO): Promise<RouteModel> {
     try {
+      const mileage = Number(data.mileage);
+      const estimatedDuration =
+        data.estimatedDuration !== undefined ? Number(data.estimatedDuration) : undefined;
+      const vatPercentage = data.vatPercentage !== undefined ? Number(data.vatPercentage) : 18;
+
       const payload = this.repository.create({
         uid: data.id,
         name: data.name,
-        mileage: data.mileage,
+        mileage,
         startLocation: data.startLocation,
         endLocation: data.endLocation,
-        estimatedDuration: data.estimatedDuration,
+        estimatedDuration,
         isActive: data.isActive ?? true,
         isVATZeroRated: data.isVATZeroRated ?? true,
-        vatPercentage: data.vatPercentage ?? 18,
+        vatPercentage,
       });
       const saved = await this.repository.save(payload);
       return saved.toDTO();
@@ -40,12 +45,16 @@ export class RouteService {
       }
 
       entity.name = data.name || entity.name;
-      entity.mileage = data.mileage ?? entity.mileage;
+      entity.mileage = data.mileage !== undefined ? Number(data.mileage) : entity.mileage;
       entity.startLocation = data.startLocation ?? entity.startLocation;
       entity.endLocation = data.endLocation ?? entity.endLocation;
-      entity.estimatedDuration = data.estimatedDuration ?? entity.estimatedDuration;
+      entity.estimatedDuration =
+        data.estimatedDuration !== undefined
+          ? Number(data.estimatedDuration)
+          : entity.estimatedDuration;
       entity.isVATZeroRated = data.isVATZeroRated ?? entity.isVATZeroRated;
-      entity.vatPercentage = data.vatPercentage ?? entity.vatPercentage;
+      entity.vatPercentage =
+        data.vatPercentage !== undefined ? Number(data.vatPercentage) : entity.vatPercentage;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

@@ -17,13 +17,20 @@ export class ExpenseTransactionService {
   async createExpenseTransaction(data: CreateExpenseTransactionDTO): Promise<ExpenseTransactionModel> {
     try {
       await this.validateExpense(data.expenseId);
+      const transactionAmount = Number(data.transactionAmount);
+      const unitPrice = Number(data.unitPrice);
+      const quantity = Number(data.quantity);
 
       const payload = this.repository.create({
         uid: data.id,
         expenseUid: data.expenseId,
         vendorName: data.vendorName,
         vendorTIN: data.vendorTIN,
-        transactionAmount: data.transactionAmount,
+        transactionAmount,
+        transactionDate: new Date(data.transactionDate),
+        unitPrice,
+        quantity,
+        attachment: data.attachment,
       });
 
       const saved = await this.repository.save(payload);
@@ -52,7 +59,14 @@ export class ExpenseTransactionService {
       entity.expenseUid = targetExpenseId;
       entity.vendorName = data.vendorName || entity.vendorName;
       entity.vendorTIN = data.vendorTIN || entity.vendorTIN;
-      entity.transactionAmount = data.transactionAmount ?? entity.transactionAmount;
+      entity.transactionAmount =
+        data.transactionAmount !== undefined
+          ? Number(data.transactionAmount)
+          : entity.transactionAmount;
+      entity.transactionDate = data.transactionDate ? new Date(data.transactionDate) : entity.transactionDate;
+      entity.unitPrice = data.unitPrice !== undefined ? Number(data.unitPrice) : entity.unitPrice;
+      entity.quantity = data.quantity !== undefined ? Number(data.quantity) : entity.quantity;
+      entity.attachment = data.attachment ?? entity.attachment;
 
       const updated = await this.repository.save(entity);
       const refreshed = await this.repository.findOne({

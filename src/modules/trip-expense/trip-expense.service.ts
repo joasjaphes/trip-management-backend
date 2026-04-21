@@ -25,12 +25,13 @@ export class TripExpenseService {
   async createTripExpense(data: CreateTripExpenseDTO): Promise<TripExpenseModel> {
     try {
       await this.validateReferences(data);
+      const amount = Number(data.amount);
 
       const payload = this.repository.create({
         uid: data.id,
         tripUid: data.tripId,
         expenseUid: data.expenseId,
-        amount: data.amount,
+        amount,
         receiptAttachment: data.receiptAttachment,
         date: data.date ? new Date(data.date) : new Date(),
       });
@@ -53,7 +54,7 @@ export class TripExpenseService {
 
       entity.tripUid = data.tripId || entity.tripUid;
       entity.expenseUid = data.expenseId || entity.expenseUid;
-      entity.amount = data.amount ?? entity.amount;
+    entity.amount = data.amount !== undefined ? Number(data.amount) : entity.amount;
       entity.receiptAttachment = data.receiptAttachment ?? entity.receiptAttachment;
       entity.date = data.date ? new Date(data.date) : entity.date;
 

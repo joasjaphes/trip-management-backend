@@ -50,8 +50,12 @@ export class InvoiceService {
           );
         }
 
-        const paidAmount = data.paidAmount ?? trip.paidAmount ?? 0;
-        if (paidAmount < 0 || paidAmount > trip.revenue) {
+        const tripRevenue = Number(trip.revenue ?? 0);
+        const paidAmount =
+          data.paidAmount !== undefined
+            ? Number(data.paidAmount)
+            : Number(trip.paidAmount ?? 0);
+        if (paidAmount < 0 || paidAmount > tripRevenue) {
           throw new BadRequestException('paidAmount must be between 0 and trip revenue');
         }
 
@@ -74,7 +78,7 @@ export class InvoiceService {
           .andWhere(
             'ABS((invoice.amount / NULLIF(invoice.quantity, 0)) - :invoiceAmount) < :epsilon',
             {
-              invoiceAmount: trip.revenue,
+              invoiceAmount: tripRevenue,
               epsilon: 0.000001,
             },
           )
@@ -104,12 +108,22 @@ export class InvoiceService {
           uid: data.id,
           invoiceNumber: `INV-${Date.now()}`,
           customerUid: trip.customerUid,
-          amount: trip.revenue,
-          subtotal: trip.subtotal ?? data.subtotal ?? 0,
-          vatAmount: trip.vatAmount ?? data.vatAmount ?? 0,
+          amount: tripRevenue,
+          subtotal:
+            trip.subtotal !== undefined
+              ? Number(trip.subtotal)
+              : data.subtotal !== undefined
+                ? Number(data.subtotal)
+                : 0,
+          vatAmount:
+            trip.vatAmount !== undefined
+              ? Number(trip.vatAmount)
+              : data.vatAmount !== undefined
+                ? Number(data.vatAmount)
+                : 0,
           paidAmount,
           quantity: 1,
-          paymentStatus: this.getPaymentStatus(trip.revenue, paidAmount),
+          paymentStatus: this.getPaymentStatus(tripRevenue, paidAmount),
           description: routeName,
           status: data.status ?? InvoiceStatus.DRAFT,
         });

@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  trip-database:
+    image: postgis/postgis:17-3.5-alpine
+    container_name: trip-database
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - trip-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trip_user} -d ${POSTGRES_DB:-trip_management}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dpod-proxy
+
+  trip-api:
+    image: monitafrica/trip-api:1.0.9
+    container_name: trip-api
+    restart: unless-stopped
+    depends_on:
+      trip-database:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./files:/app/uploads
+  
+
+volumes:
+  trip-db-data:
+
+networks: 
+  default: 
+    external: 
+      name: dpod-network

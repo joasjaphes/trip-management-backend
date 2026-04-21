@@ -35,8 +35,8 @@ export class OffloadingPlaceService {
       const payload = this.repository.create({
         uid: data.id,
         name: data.name,
-        latitude: data.latitude,
-        longitude: data.longitude,
+        latitude: data.latitude !== undefined ? Number(data.latitude) : undefined,
+        longitude: data.longitude !== undefined ? Number(data.longitude) : undefined,
       });
       const saved = await this.repository.save(payload);
       return saved.toDTO();
@@ -74,8 +74,8 @@ export class OffloadingPlaceService {
       }
 
       entity.name = data.name || entity.name;
-      entity.latitude = data.latitude ?? entity.latitude;
-      entity.longitude = data.longitude ?? entity.longitude;
+    entity.latitude = data.latitude !== undefined ? Number(data.latitude) : entity.latitude;
+    entity.longitude = data.longitude !== undefined ? Number(data.longitude) : entity.longitude;
 
       const updated = await this.repository.save(entity);
       return updated.toDTO();

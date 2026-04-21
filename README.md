@@ -526,7 +526,11 @@ Content-Type: application/json
   "expenseId": "expense-uid-123",
   "vendorName": "Petrol Station Ltd",
   "vendorTIN": "TIN-123456789",
-  "transactionAmount": 250000
+  "transactionAmount": 250000,
+  "transactionDate": "2026-04-21T09:30:00.000Z",
+  "unitPrice": 2500,
+  "quantity": 100,
+  "attachment": "/uploads/expense-transaction-123.jpg"
 }
 ```
 
@@ -540,7 +544,11 @@ Content-Type: application/json
   "expenseId": "expense-uid-123",
   "vendorName": "Petrol Station Ltd",
   "vendorTIN": "TIN-123456789",
-  "transactionAmount": 250000
+  "transactionAmount": 250000,
+  "transactionDate": "2026-04-21T09:30:00.000Z",
+  "unitPrice": 2500,
+  "quantity": 100,
+  "attachment": "/uploads/expense-transaction-123.jpg"
 }
 ```
 
@@ -549,6 +557,39 @@ Expense transaction fields:
 - `vendorName` stores the vendor or supplier name
 - `vendorTIN` stores the vendor tax identification number
 - `transactionAmount` stores the transaction value
+- `transactionDate` stores when the transaction happened
+- `unitPrice` stores the per-unit price used for the transaction
+- `quantity` stores the transacted units
+- `attachment` stores an optional file path for related proof/document
+
+Required fields for posting (`POST /api/expenseTransactions`):
+- `expenseId`
+- `vendorName`
+- `vendorTIN`
+- `transactionAmount`
+- `transactionDate`
+- `unitPrice`
+- `quantity`
+
+Optional fields:
+- `attachment`
+
+Example cURL:
+```bash
+curl -X POST "http://localhost:3000/api/expenseTransactions" \
+  -H "Authorization: Basic <credentials>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expenseId": "expense-uid-123",
+    "vendorName": "Petrol Station Ltd",
+    "vendorTIN": "TIN-123456789",
+    "transactionAmount": 250000,
+    "transactionDate": "2026-04-21T09:30:00.000Z",
+    "unitPrice": 2500,
+    "quantity": 100,
+    "attachment": "/uploads/expense-transaction-123.jpg"
+  }'
+```
 
 ---
 
@@ -956,6 +997,10 @@ Use this file path in fields like `driverPhoto`, `licenseFrontPagePhoto`, `recei
   "vendorName": "string",
   "vendorTIN": "string",
   "transactionAmount": "number",
+  "transactionDate": "string",
+  "unitPrice": "number",
+  "quantity": "number",
+  "attachment": "string | undefined",
   "createdAt": "string",
   "updatedAt": "string"
 }

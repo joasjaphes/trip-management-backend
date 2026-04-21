@@ -13,6 +13,12 @@ export class VehicleService {
 
   async createVehicle(data: CreateVehicleDTO): Promise<VehicleModel> {
     try {
+      const registrationYear =
+        data.registrationYear !== undefined ? Number(data.registrationYear) : undefined;
+      const tankCapacity = data.tankCapacity !== undefined ? Number(data.tankCapacity) : undefined;
+      const mileagePerFullTank =
+        data.mileagePerFullTank !== undefined ? Number(data.mileagePerFullTank) : undefined;
+
       const payload = this.repository.create({
         uid: data.id,
         registrationNo: data.registrationNo,
@@ -23,9 +29,9 @@ export class VehicleService {
         trailerWeightLimits: data.trailerWeightLimits,
         trailerAxles: data.trailerAxles,
         trailerSuspension: data.trailerSuspension,
-        registrationYear: data.registrationYear,
-        tankCapacity: data.tankCapacity,
-        mileagePerFullTank: data.mileagePerFullTank,
+        registrationYear,
+        tankCapacity,
+        mileagePerFullTank,
         isActive: data.isActive ?? true,
       });
       const saved = await this.repository.save(payload);
@@ -44,10 +50,16 @@ export class VehicleService {
       }
 
       entity.registrationNo = data.registrationNo || entity.registrationNo;
-      entity.registrationYear = data.registrationYear ?? entity.registrationYear;
-      entity.tankCapacity = data.tankCapacity ?? entity.tankCapacity;
+      entity.registrationYear =
+        data.registrationYear !== undefined
+          ? Number(data.registrationYear)
+          : entity.registrationYear;
+      entity.tankCapacity =
+        data.tankCapacity !== undefined ? Number(data.tankCapacity) : entity.tankCapacity;
       entity.mileagePerFullTank =
-        data.mileagePerFullTank ?? entity.mileagePerFullTank;
+        data.mileagePerFullTank !== undefined
+          ? Number(data.mileagePerFullTank)
+          : entity.mileagePerFullTank;
       entity.model = data.model ?? entity.model;
       entity.type = data.type ?? entity.type;
       entity.trailerType = data.trailerType ?? entity.trailerType;

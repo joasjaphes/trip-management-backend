@@ -37,6 +37,6 @@ RUN npm install typeorm --save-dev -f
 EXPOSE 3000
 
 # Step 11: Define the default command to run the app
-# CMD ["sh", "-c", "node dist/src/main && npm run seed:prod"]
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "npm run start:prod"]
+# CMD ["node", "dist/main"]
 

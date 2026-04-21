@@ -40,7 +40,8 @@ export class ReceiptService {
           throw new BadRequestException(`Invoice with ID ${data.invoiceId} not found`);
         }
 
-        const nextPaidAmount = invoice.paidAmount + data.amount;
+        const amount = Number(data.amount);
+        const nextPaidAmount = invoice.paidAmount + amount;
         if (nextPaidAmount > invoice.amount) {
           throw new BadRequestException(
             'Receipt amount would exceed invoice amount',
@@ -50,7 +51,7 @@ export class ReceiptService {
         const payload = receiptRepository.create({
           uid: data.id,
           invoiceUid: data.invoiceId,
-          amount: data.amount,
+          amount,
           paidAt: data.paidAt ? new Date(data.paidAt) : new Date(),
           reference: data.reference,
           notes: data.notes,
@@ -110,7 +111,7 @@ export class ReceiptService {
         }
 
         const targetInvoiceUid = data.invoiceId || existing.invoiceUid;
-        const targetAmount = data.amount ?? existing.amount;
+        const targetAmount = data.amount !== undefined ? Number(data.amount) : existing.amount;
         const targetInvoice = await invoiceRepository.findOne({
           where: { uid: targetInvoiceUid },
         });

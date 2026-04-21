@@ -60,13 +60,17 @@ export class TripService {
           cargoTypeRepository,
         });
 
+        const revenue = Number(data.revenue);
+        const income = Number(data.income);
+        const cargoQuantity =
+          data.cargoQuantity !== undefined ? Number(data.cargoQuantity) : undefined;
         let vatAmount = 0;
-        let subtotal = data.revenue;
+        let subtotal = revenue;
         if (!route.isVATZeroRated) {
           const vatPercentage = Number(route.vatPercentage) ?? 18;
           const vatFactor = 1 + (vatPercentage / 100);
-          subtotal = Number(data.revenue) / Number(vatFactor);
-          vatAmount = Number(data.revenue) - subtotal;
+          subtotal = revenue / Number(vatFactor);
+          vatAmount = revenue - subtotal;
         }
 
         let customer = await customerRepository.findOne({
@@ -83,8 +87,8 @@ export class TripService {
           customer = await customerRepository.save(customer);
         }
 
-        const paidAmount = data.paidAmount ?? 0;
-        if (paidAmount < 0 || paidAmount > data.revenue) {
+        const paidAmount = data.paidAmount !== undefined ? Number(data.paidAmount) : 0;
+        if (paidAmount < 0 || paidAmount > revenue) {
           throw new BadRequestException('paidAmount must be between 0 and revenue');
         }
 
@@ -113,15 +117,15 @@ export class TripService {
           vehicleUid: data.vehicleId,
           trailerUid: data.trailerId,
           docNumber: data.docNumber,
-          cargoQuantity: data.cargoQuantity,
+          cargoQuantity,
           driverUid: data.driverId,
           routeUid: data.routeId,
           cargoTypeUid: data.cargoTypeId,
-          revenue: data.revenue,
+          revenue,
           paidAmount,
           subtotal,
           vatAmount,
-          income: data.income,
+          income,
           status: data.status,
           notes: data.notes,
           tripDocument: data.tripDocument,
@@ -133,7 +137,7 @@ export class TripService {
 
         const matchingInvoice = await this.findMatchingInvoiceForTrip(
           customer.uid,
-          data.revenue,
+          revenue,
           data.routeId,
           new Date(),
         );
@@ -260,8 +264,14 @@ export class TripService {
           customerUid = customer.uid;
         }
 
-        const nextPaidAmount = data.paidAmount ?? entity.paidAmount;
-        const nextRevenue = data.revenue ?? entity.revenue;
+        const nextPaidAmount =
+          data.paidAmount !== undefined
+            ? Number(data.paidAmount)
+            : Number(entity.paidAmount ?? 0);
+        const nextRevenue =
+          data.revenue !== undefined
+            ? Number(data.revenue)
+            : Number(entity.revenue ?? 0);
         if (nextPaidAmount < 0 || nextPaidAmount > nextRevenue) {
           throw new BadRequestException('paidAmount must be between 0 and revenue');
         }
@@ -274,10 +284,11 @@ export class TripService {
         entity.driverUid = data.driverId || entity.driverUid;
         entity.routeUid = data.routeId || entity.routeUid;
         entity.cargoTypeUid = data.cargoTypeId || entity.cargoTypeUid;
-        entity.cargoQuantity = data.cargoQuantity ?? entity.cargoQuantity;
+        entity.cargoQuantity =
+          data.cargoQuantity !== undefined ? Number(data.cargoQuantity) : entity.cargoQuantity;
         entity.revenue = nextRevenue;
         entity.paidAmount = nextPaidAmount;
-        entity.income = data.income ?? entity.income;
+        entity.income = data.income !== undefined ? Number(data.income) : entity.income;
         entity.status = data.status || entity.status;
         entity.customerUid = customerUid;
         entity.offloadingPlaceUid = offloadingPlaceUid;

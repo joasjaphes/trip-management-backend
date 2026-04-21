@@ -17,6 +17,18 @@ export class ExpenseTransaction extends BaseAppEntity<ExpenseTransactionModel> {
   @Column({ type: 'float', nullable: false })
   transactionAmount: number;
 
+  @Column({ type: 'timestamptz', nullable: false })
+  transactionDate: Date;
+
+  @Column({ type: 'float', nullable: false })
+  unitPrice: number;
+
+  @Column({ type: 'float', nullable: false })
+  quantity: number;
+
+  @Column({ nullable: true, type: 'text' })
+  attachment?: string;
+
   @ManyToOne(() => Expense, (expense) => expense.transactions, { nullable: false })
   @JoinColumn({ name: 'expenseUid', referencedColumnName: 'uid' })
   expense: Expense;
@@ -30,6 +42,10 @@ export class ExpenseTransaction extends BaseAppEntity<ExpenseTransactionModel> {
       vendorName: this.vendorName,
       vendorTIN: this.vendorTIN,
       transactionAmount: this.transactionAmount,
+      transactionDate: this.transactionDate.toISOString(),
+      unitPrice: this.unitPrice,
+      quantity: this.quantity,
+      attachment: this.attachment,
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),

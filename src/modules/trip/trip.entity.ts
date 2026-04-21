@@ -36,7 +36,7 @@ export class Trip extends BaseAppEntity<TripModel> {
   @Column({ nullable: false })
   cargoTypeUid: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 0 })
   cargoQuantity?: number;
   
   @Column({ nullable: true, type: 'text' })
