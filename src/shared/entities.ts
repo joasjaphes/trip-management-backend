@@ -3,6 +3,7 @@ import { CompanyProfile } from '../modules/company-profile/company-profile.entit
 import { Customer } from '../modules/customer/customer.entity';
 import { Driver } from '../modules/driver/driver.entity';
 import { Expense } from '../modules/expense/expense.entity';
+import { ExpenseTransaction } from '../modules/expense-transaction/expense-transaction.entity';
 import { Invoice } from '../modules/invoice/invoice.entity';
 import { IssuingBody } from '../modules/issuing-body/issuing-body.entity';
 import { OffloadingPlace } from '../modules/offloading-place/offloading-place.entity';
@@ -27,6 +28,7 @@ export const entities = [
   OffloadingPlace,
   PermitRegistration,
   Receipt,
+  ExpenseTransaction,
   Driver,
   Route,
   Vehicle,

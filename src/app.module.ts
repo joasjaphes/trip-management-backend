@@ -16,6 +16,8 @@ import { DriverController } from './modules/driver/driver.controller';
 import { DriverService } from './modules/driver/driver.service';
 import { ExpenseController } from './modules/expense/expense.controller';
 import { ExpenseService } from './modules/expense/expense.service';
+import { ExpenseTransactionController } from './modules/expense-transaction/expense-transaction.controller';
+import { ExpenseTransactionService } from './modules/expense-transaction/expense-transaction.service';
 import { PermitRegistrationController } from './modules/permit-registration/permit-registration.controller';
 import { PermitRegistrationService } from './modules/permit-registration/permit-registration.service';
 import { RouteController } from './modules/route/route.controller';
@@ -82,6 +84,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     CargoTypeController,
     CompanyProfileController,
     ExpenseController,
+    ExpenseTransactionController,
     PermitRegistrationController,
     DriverController,
     RouteController,
@@ -106,6 +109,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     CargoTypeService,
     CompanyProfileService,
     ExpenseService,
+    ExpenseTransactionService,
     PermitRegistrationService,
     DriverService,
     RouteService,

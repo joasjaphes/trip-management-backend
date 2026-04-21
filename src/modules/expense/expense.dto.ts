@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { BaseAppModel } from '../../shared/base-app-dto';
 import { BaseCreateAppDTO } from '../../shared/base-create-app.dto';
+import type { ExpenseTransactionModel } from '../expense-transaction/expense-transaction.dto';
 
 export enum ExpenseCategory {
   GENERAL = 'GENERAL',
@@ -19,6 +20,7 @@ export interface ExpenseModel extends BaseAppModel {
   parentId?: string;
   parent?: ExpenseModel;
   children?: ExpenseModel[];
+  transactions?: ExpenseTransactionModel[];
   type: ExpenseType;
   description?: string;
   isPurchase?: boolean;

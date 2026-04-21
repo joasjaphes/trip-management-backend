@@ -488,6 +488,8 @@ Content-Type: application/json
 
 **Category Options:** `GENERAL`, `OTHER`
 
+Expense responses can include a `transactions` array. Each expense transaction belongs to one expense, and one expense can have many transactions.
+
 #### Update Expense
 ```http
 PUT /api/expenses
@@ -500,6 +502,53 @@ Content-Type: application/json
   ...
 }
 ```
+
+---
+
+### Expense Transactions (`/api/expenseTransactions`)
+
+#### Get All Expense Transactions
+```http
+GET /api/expenseTransactions
+```
+
+#### Get Expense Transaction by ID
+```http
+GET /api/expenseTransactions/:id
+```
+
+#### Create Expense Transaction
+```http
+POST /api/expenseTransactions
+Content-Type: application/json
+
+{
+  "expenseId": "expense-uid-123",
+  "vendorName": "Petrol Station Ltd",
+  "vendorTIN": "TIN-123456789",
+  "transactionAmount": 250000
+}
+```
+
+#### Update Expense Transaction
+```http
+PUT /api/expenseTransactions
+Content-Type: application/json
+
+{
+  "id": "expense-transaction-id",
+  "expenseId": "expense-uid-123",
+  "vendorName": "Petrol Station Ltd",
+  "vendorTIN": "TIN-123456789",
+  "transactionAmount": 250000
+}
+```
+
+Expense transaction fields:
+- `expenseId` links the transaction to an existing expense
+- `vendorName` stores the vendor or supplier name
+- `vendorTIN` stores the vendor tax identification number
+- `transactionAmount` stores the transaction value
 
 ---
 
@@ -874,6 +923,39 @@ Use this file path in fields like `driverPhoto`, `licenseFrontPagePhoto`, `recei
   "income": "number",
   "status": "pending | inprogress | completed | cancelled",
   "expenses": "TripExpenseModel[]",
+  "createdAt": "string",
+  "updatedAt": "string"
+}
+```
+
+### Expense Model
+```typescript
+{
+  "id": "string",
+  "name": "string",
+  "category": "GENERAL | OTHER",
+  "parentId": "string | undefined",
+  "parent": "ExpenseModel | undefined",
+  "children": "ExpenseModel[] | undefined",
+  "transactions": "ExpenseTransactionModel[] | undefined",
+  "type": "TRIP | OFFICE",
+  "description": "string | undefined",
+  "isPurchase": "boolean | undefined",
+  "isActive": "boolean",
+  "status": "string | undefined",
+  "createdAt": "string",
+  "updatedAt": "string"
+}
+```
+
+### Expense Transaction Model
+```typescript
+{
+  "id": "string",
+  "expenseId": "string",
+  "vendorName": "string",
+  "vendorTIN": "string",
+  "transactionAmount": "number",
   "createdAt": "string",
   "updatedAt": "string"
 }

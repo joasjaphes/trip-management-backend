@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, VirtualColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseAppEntity } from '../../shared/base-app-entity';
 import { ExpenseCategory, ExpenseModel, ExpenseType } from './expense.dto';
+import { ExpenseTransaction } from '../expense-transaction/expense-transaction.entity';
 
 @Entity('expenses')
 export class Expense extends BaseAppEntity<ExpenseModel> {
@@ -17,6 +18,9 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
   @OneToMany(() => Expense, (expense) => expense.parent)
   @JoinColumn({ name: 'uid', referencedColumnName: 'parentId' })
   children?: Expense[];
+
+  @OneToMany(() => ExpenseTransaction, (transaction) => transaction.expense)
+  transactions?: ExpenseTransaction[];
 
   @Column({
     type: 'enum',
@@ -52,6 +56,7 @@ export class Expense extends BaseAppEntity<ExpenseModel> {
       parent: this.parent ? this.parent.toDTO() : undefined,
       isPurchase: this.isPurchase,
       children: this.children ? this.children.map(child => child?.toDTO()) : undefined,
+      transactions: this.transactions ? this.transactions.map((transaction) => transaction?.toDTO()) : undefined,
       type: this.type,
       description: this.description,
       isActive: this.isActive,
