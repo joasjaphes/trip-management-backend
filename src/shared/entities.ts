@@ -12,6 +12,7 @@ import { Receipt } from '../modules/receipt/receipt.entity';
 import { Route } from '../modules/route/route.entity';
 import { TripExpense } from '../modules/trip-expense/trip-expense.entity';
 import { Trip } from '../modules/trip/trip.entity';
+import { Vendor } from '../modules/vendor/vendor.entity';
 import { User } from '../modules/user/user.entity';
 import { VehiclePermit } from '../modules/vehicle-permit/vehicle-permit.entity';
 import { Vehicle } from '../modules/vehicle/vehicle.entity';
@@ -28,6 +29,7 @@ export const entities = [
   OffloadingPlace,
   PermitRegistration,
   Receipt,
+  Vendor,
   ExpenseTransaction,
   Driver,
   Route,

@@ -2,11 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { BaseAppModel } from '../../shared/base-app-dto';
 import { BaseCreateAppDTO } from '../../shared/base-create-app.dto';
+import type { VendorModel } from '../vendor/vendor.dto';
 
 export interface ExpenseTransactionModel extends BaseAppModel {
   expenseId: string;
+  vendorId: string;
+  vendor?: VendorModel;
   vendorName?: string;
   vendorTIN?: string;
+  description?: string;
   transactionAmount: number;
   transactionDate: string;
   unitPrice: number;
@@ -22,6 +26,11 @@ export class CreateExpenseTransactionDTO extends BaseCreateAppDTO {
 
   @IsString()
   @IsOptional()
+  @ApiProperty({ example: 'vendor-uid-123', required: false })
+  vendorId?: string;
+
+  @IsString()
+  @IsOptional()
   @ApiProperty({ example: 'Petrol Station Ltd' })
   vendorName?: string;
 
@@ -29,6 +38,11 @@ export class CreateExpenseTransactionDTO extends BaseCreateAppDTO {
   @IsOptional()
   @ApiProperty({ example: 'TIN-123456789' })
   vendorTIN?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'Fuel purchase for trip TRP-2026-001', required: false })
+  description?: string;
 
   @IsNumber()
   @Min(0.01)

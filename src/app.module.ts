@@ -18,6 +18,8 @@ import { ExpenseController } from './modules/expense/expense.controller';
 import { ExpenseService } from './modules/expense/expense.service';
 import { ExpenseTransactionController } from './modules/expense-transaction/expense-transaction.controller';
 import { ExpenseTransactionService } from './modules/expense-transaction/expense-transaction.service';
+import { VendorController } from './modules/vendor/vendor.controller';
+import { VendorService } from './modules/vendor/vendor.service';
 import { PermitRegistrationController } from './modules/permit-registration/permit-registration.controller';
 import { PermitRegistrationService } from './modules/permit-registration/permit-registration.service';
 import { RouteController } from './modules/route/route.controller';
@@ -85,6 +87,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     CompanyProfileController,
     ExpenseController,
     ExpenseTransactionController,
+    VendorController,
     PermitRegistrationController,
     DriverController,
     RouteController,
@@ -110,6 +113,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     CompanyProfileService,
     ExpenseService,
     ExpenseTransactionService,
+    VendorService,
     PermitRegistrationService,
     DriverService,
     RouteService,

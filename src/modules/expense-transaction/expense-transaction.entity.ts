@@ -2,17 +2,18 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseAppEntity } from '../../shared/base-app-entity';
 import { ExpenseTransactionModel } from './expense-transaction.dto';
 import { Expense } from '../expense/expense.entity';
+import { Vendor } from '../vendor/vendor.entity';
 
 @Entity('expense_transactions')
 export class ExpenseTransaction extends BaseAppEntity<ExpenseTransactionModel> {
   @Column({ nullable: false })
   expenseUid: string;
 
-  @Column({ nullable: false, length: 120 })
-  vendorName: string;
+  @Column({ nullable: false })
+  vendorUid: string;
 
-  @Column({ nullable: false, length: 60 })
-  vendorTIN: string;
+  @Column({ nullable: true, type: 'text' })
+  description?: string;
 
   @Column({ type: 'float', nullable: false })
   transactionAmount: number;
@@ -33,14 +34,21 @@ export class ExpenseTransaction extends BaseAppEntity<ExpenseTransactionModel> {
   @JoinColumn({ name: 'expenseUid', referencedColumnName: 'uid' })
   expense: Expense;
 
+  @ManyToOne(() => Vendor, { nullable: false })
+  @JoinColumn({ name: 'vendorUid', referencedColumnName: 'uid' })
+  vendor: Vendor;
+
   toDTO(options?: { eager: boolean }): ExpenseTransactionModel {
     return {
       id: this.uid,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
       expenseId: this.expenseUid,
-      vendorName: this.vendorName,
-      vendorTIN: this.vendorTIN,
+      vendorId: this.vendorUid,
+      vendor: this.vendor?.toDTO(),
+      vendorName: this.vendor?.vendorName,
+      vendorTIN: this.vendor?.vendorTIN,
+      description: this.description,
       transactionAmount: this.transactionAmount,
       transactionDate: this.transactionDate.toISOString(),
       unitPrice: this.unitPrice,

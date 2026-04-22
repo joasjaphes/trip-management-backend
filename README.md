@@ -1,6 +1,6 @@
 # Trip Management API - Frontend Integration Guide
 
-A comprehensive backend API for managing trips, customers, invoices, receipts, vehicles, drivers, routes, expenses, and related operations.
+A comprehensive backend API for managing trips, customers, vendors, invoices, receipts, vehicles, drivers, routes, expenses, and related operations.
 
 ## Table of Contents
 - [Base Configuration](#base-configuration)
@@ -505,6 +505,50 @@ Content-Type: application/json
 
 ---
 
+### Vendors (`/api/vendors`)
+
+#### Get All Vendors
+```http
+GET /api/vendors
+```
+
+#### Get Vendor by ID
+```http
+GET /api/vendors/:id
+```
+
+#### Create Vendor
+```http
+POST /api/vendors
+Content-Type: application/json
+
+{
+  "id": "vendor-uid-123",
+  "vendorName": "Petrol Station Ltd",
+  "vendorTIN": "TIN-123456789",
+  "vendorContact": "+255700000000",
+  "vendorAddress": "Dar es Salaam, Tanzania"
+}
+```
+
+#### Update Vendor
+```http
+PUT /api/vendors
+Content-Type: application/json
+
+{
+  "id": "vendor-uid-123",
+  "vendorName": "Petrol Station Ltd",
+  "vendorTIN": "TIN-123456789",
+  "vendorContact": "+255700000000",
+  "vendorAddress": "Dar es Salaam, Tanzania"
+}
+```
+
+Vendor records are the source of truth for supplier details. Expense transactions link to a vendor through `vendorId`, and one vendor can be referenced by many transactions.
+
+---
+
 ### Expense Transactions (`/api/expenseTransactions`)
 
 #### Get All Expense Transactions
@@ -524,8 +568,8 @@ Content-Type: application/json
 
 {
   "expenseId": "expense-uid-123",
-  "vendorName": "Petrol Station Ltd",
-  "vendorTIN": "TIN-123456789",
+  "vendorId": "vendor-uid-123",
+  "description": "Fuel purchase for trip TRP-2026-001",
   "transactionAmount": 250000,
   "transactionDate": "2026-04-21T09:30:00.000Z",
   "unitPrice": 2500,
@@ -542,8 +586,8 @@ Content-Type: application/json
 {
   "id": "expense-transaction-id",
   "expenseId": "expense-uid-123",
-  "vendorName": "Petrol Station Ltd",
-  "vendorTIN": "TIN-123456789",
+  "vendorId": "vendor-uid-123",
+  "description": "Fuel purchase for trip TRP-2026-001",
   "transactionAmount": 250000,
   "transactionDate": "2026-04-21T09:30:00.000Z",
   "unitPrice": 2500,
@@ -554,8 +598,9 @@ Content-Type: application/json
 
 Expense transaction fields:
 - `expenseId` links the transaction to an existing expense
-- `vendorName` stores the vendor or supplier name
-- `vendorTIN` stores the vendor tax identification number
+- `vendorId` links the transaction to an existing vendor
+- `vendorName` and `vendorTIN` are still accepted in requests for backward compatibility when `vendorId` is omitted
+- `description` stores a free-form note about the transaction
 - `transactionAmount` stores the transaction value
 - `transactionDate` stores when the transaction happened
 - `unitPrice` stores the per-unit price used for the transaction
@@ -564,14 +609,15 @@ Expense transaction fields:
 
 Required fields for posting (`POST /api/expenseTransactions`):
 - `expenseId`
-- `vendorName`
-- `vendorTIN`
+- `vendorId` or `vendorName`
 - `transactionAmount`
 - `transactionDate`
 - `unitPrice`
 - `quantity`
 
 Optional fields:
+- `vendorTIN`
+- `description`
 - `attachment`
 
 Example cURL:
@@ -581,8 +627,8 @@ curl -X POST "http://localhost:3000/api/expenseTransactions" \
   -H "Content-Type: application/json" \
   -d '{
     "expenseId": "expense-uid-123",
-    "vendorName": "Petrol Station Ltd",
-    "vendorTIN": "TIN-123456789",
+    "vendorId": "vendor-uid-123",
+    "description": "Fuel purchase for trip TRP-2026-001",
     "transactionAmount": 250000,
     "transactionDate": "2026-04-21T09:30:00.000Z",
     "unitPrice": 2500,
@@ -590,6 +636,8 @@ curl -X POST "http://localhost:3000/api/expenseTransactions" \
     "attachment": "/uploads/expense-transaction-123.jpg"
   }'
 ```
+
+If `vendorId` is not supplied, the API can still accept `vendorName` and `vendorTIN` and will create or reuse a vendor record from that information.
 
 ---
 
