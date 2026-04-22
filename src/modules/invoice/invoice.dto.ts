@@ -25,6 +25,7 @@ export interface InvoiceModel extends BaseAppModel {
   customerId: string;
   customer?: CustomerModel;
   trips?: TripModel[];
+  trucks?: string;
   amount: number;
   subtotal: number;
   vatAmount?: number;

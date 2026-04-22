@@ -82,16 +82,16 @@ export class Trip extends BaseAppEntity<TripModel> {
   notes?: string;
 
 
-  @ManyToOne(() => Vehicle, { nullable: false })
+  @ManyToOne(() => Vehicle, { nullable: false , eager: true})
   @JoinColumn({ name: 'vehicleUid', referencedColumnName: 'uid' })
   vehicle: Vehicle;
 
-  @ManyToOne(() => Vehicle, { nullable: true })
+  @ManyToOne(() => Vehicle, { nullable: true , eager: true})
   @JoinColumn({ name: 'trailerUid', referencedColumnName: 'uid' })
   trailer: Vehicle;
 
 
-  @ManyToOne(() => Driver, { nullable: false })
+  @ManyToOne(() => Driver, { nullable: false, eager: true })
   @JoinColumn({ name: 'driverUid', referencedColumnName: 'uid' })
   driver: Driver;
 
@@ -99,22 +99,22 @@ export class Trip extends BaseAppEntity<TripModel> {
   @JoinColumn({ name: 'routeUid', referencedColumnName: 'uid' })
   route: Route;
 
-  @ManyToOne(() => CargoType, { nullable: false })
+  @ManyToOne(() => CargoType, { nullable: false, eager: true })
   @JoinColumn({ name: 'cargoTypeUid', referencedColumnName: 'uid' })
   cargoType: CargoType;
 
   @OneToMany(() => TripExpense, (tripExpense) => tripExpense.trip)
   expenses: TripExpense[];
 
-  @ManyToOne(() => Customer, { nullable: true })
+  @ManyToOne(() => Customer, { nullable: true, eager: true })
   @JoinColumn({ name: 'customerUid', referencedColumnName: 'uid' })
   customer: Customer;
 
-  @ManyToOne(() => OffloadingPlace, { nullable: true })
+  @ManyToOne(() => OffloadingPlace, { nullable: true, eager: true })
   @JoinColumn({ name: 'offloadingPlaceUid', referencedColumnName: 'uid' })
   offloadingPlace: OffloadingPlace;
 
-  @ManyToOne(() => Invoice, { nullable: true })
+  @ManyToOne(() => Invoice, { nullable: true, eager: true })
   @JoinColumn({ name: 'invoiceUid', referencedColumnName: 'uid' })
   invoice?: Invoice;
 
