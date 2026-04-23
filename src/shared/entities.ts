@@ -8,6 +8,8 @@ import { Invoice } from '../modules/invoice/invoice.entity';
 import { IssuingBody } from '../modules/issuing-body/issuing-body.entity';
 import { OffloadingPlace } from '../modules/offloading-place/offloading-place.entity';
 import { PermitRegistration } from '../modules/permit-registration/permit-registration.entity';
+import { PurchaseOrderItem } from '../modules/purchase-order/purchase-order-item.entity';
+import { PurchaseOrder } from '../modules/purchase-order/purchase-order.entity';
 import { Receipt } from '../modules/receipt/receipt.entity';
 import { Route } from '../modules/route/route.entity';
 import { TripExpense } from '../modules/trip-expense/trip-expense.entity';
@@ -28,6 +30,8 @@ export const entities = [
   IssuingBody,
   OffloadingPlace,
   PermitRegistration,
+  PurchaseOrder,
+  PurchaseOrderItem,
   Receipt,
   Vendor,
   ExpenseTransaction,

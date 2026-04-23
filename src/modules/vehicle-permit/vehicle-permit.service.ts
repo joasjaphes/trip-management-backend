@@ -101,4 +101,17 @@ export class VehiclePermitService {
       throw e;
     }
   }
+
+  async deleteVehiclePermit(id: string): Promise<void> {
+    try {
+      const entity = await this.repository.findOne({ where: { uid: id } });
+      if (!entity) {
+        throw new NotFoundException(`Vehicle permit with ID ${id} not found`);
+      }
+      await this.repository.remove(entity);
+    } catch (e) {
+      Logger.error('Failed to delete vehicle permit', e);
+      throw e;
+    }
+  }
 }

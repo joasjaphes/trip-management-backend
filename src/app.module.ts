@@ -22,6 +22,8 @@ import { VendorController } from './modules/vendor/vendor.controller';
 import { VendorService } from './modules/vendor/vendor.service';
 import { PermitRegistrationController } from './modules/permit-registration/permit-registration.controller';
 import { PermitRegistrationService } from './modules/permit-registration/permit-registration.service';
+import { PurchaseOrderController } from './modules/purchase-order/purchase-order.controller';
+import { PurchaseOrderService } from './modules/purchase-order/purchase-order.service';
 import { RouteController } from './modules/route/route.controller';
 import { RouteService } from './modules/route/route.service';
 import { TripExpenseController } from './modules/trip-expense/trip-expense.controller';
@@ -89,6 +91,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     ExpenseTransactionController,
     VendorController,
     PermitRegistrationController,
+    PurchaseOrderController,
     DriverController,
     RouteController,
     VehicleController,
@@ -115,6 +118,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     ExpenseTransactionService,
     VendorService,
     PermitRegistrationService,
+    PurchaseOrderService,
     DriverService,
     RouteService,
     VehicleService,

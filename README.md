@@ -1,11 +1,12 @@
 # Trip Management API - Frontend Integration Guide
 
-A comprehensive backend API for managing trips, customers, vendors, invoices, receipts, vehicles, drivers, routes, expenses, and related operations.
+A comprehensive backend API for managing trips, customers, vendors, purchase orders, invoices, receipts, vehicles, drivers, routes, expenses, and related operations.
 
 ## Table of Contents
 - [Base Configuration](#base-configuration)
 - [Authentication](#authentication)
 - [API Endpoints](#api-endpoints)
+- [Purchase Orders](#purchase-orders-api-purchase-orders)
 - [Data Models](#data-models)
 - [Migrations](#migrations)
 - [Error Handling](#error-handling)
@@ -638,6 +639,107 @@ curl -X POST "http://localhost:3000/api/expenseTransactions" \
 ```
 
 If `vendorId` is not supplied, the API can still accept `vendorName` and `vendorTIN` and will create or reuse a vendor record from that information.
+
+---
+
+### Purchase Orders (`/api/purchase-orders`)
+
+#### Get All Purchase Orders
+```http
+GET /api/purchase-orders
+```
+
+#### Get Purchase Order by ID
+```http
+GET /api/purchase-orders/:id
+```
+
+#### Create Purchase Order
+```http
+POST /api/purchase-orders
+Content-Type: application/json
+
+{
+  "id": "purchase-order-uid-123",
+  "purchaseOrderReferenceNumber": "PO-2026-001",
+  "vendorId": "vendor-uid-123",
+  "orderDate": "2026-04-22T10:30:00.000Z",
+  "approvedDate": "2026-04-22T12:00:00.000Z",
+  "approvedByUserId": "user-uid-456",
+  "completedByUserId": "user-uid-789",
+  "orderStatus": "Approved",
+  "orderItems": [
+    {
+      "itemId": "expense-uid-123",
+      "description": "Fuel for trip operations",
+      "amount": 350000
+    },
+    {
+      "itemId": "expense-uid-456",
+      "description": "Tire replacement",
+      "amount": 180000
+    }
+  ]
+}
+```
+
+#### Update Purchase Order
+```http
+PUT /api/purchase-orders
+Content-Type: application/json
+
+{
+  "id": "purchase-order-uid-123",
+  "purchaseOrderReferenceNumber": "PO-2026-001",
+  "vendorId": "vendor-uid-123",
+  "orderDate": "2026-04-22T10:30:00.000Z",
+  "completionDate": "2026-04-25T14:00:00.000Z",
+  "approvedDate": "2026-04-22T12:00:00.000Z",
+  "approvedByUserId": "user-uid-456",
+  "completedByUserId": "user-uid-789",
+  "orderStatus": "Completed",
+  "orderItems": [
+    {
+      "itemId": "expense-uid-123",
+      "description": "Fuel for trip operations",
+      "amount": 350000
+    }
+  ]
+}
+```
+
+Purchase order fields:
+- `purchaseOrderReferenceNumber` is the business reference for the order
+- `vendorId` links the purchase order to an existing vendor
+- `orderDate` stores when the order was created
+- `completionDate` stores when the order was completed
+- `approvedDate` stores when the order was approved
+- `completedByUserId` links to the user who completed the order
+- `approvedByUserId` links to the user who approved the order
+- `orderStatus` tracks the lifecycle state of the order
+- `orderItems` stores the line items attached to the purchase order
+
+Purchase order item fields:
+- `itemId` links each line item to an existing expense record
+- `description` stores the item description
+- `amount` stores the item amount
+
+Order status options: `Pending`, `Approved`, `Completed`
+
+Required fields for posting (`POST /api/purchase-orders`):
+- `purchaseOrderReferenceNumber`
+- `vendorId`
+- `orderDate`
+- `orderStatus`
+- `orderItems`
+
+Optional fields:
+- `completionDate`
+- `approvedDate`
+- `completedByUserId`
+- `approvedByUserId`
+
+Each purchase order can contain multiple items, and each item must reference an existing expense.
 
 ---
 

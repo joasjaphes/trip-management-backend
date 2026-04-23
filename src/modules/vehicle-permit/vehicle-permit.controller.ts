@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -42,5 +43,10 @@ export class VehiclePermitController {
     @Body() data: CreateVehiclePermitDTO,
   ): Promise<VehiclePermitModel> {
     return this.vehiclePermitService.updateVehiclePermit(data);
+  }
+
+  @Delete('/:id')
+  async deleteVehiclePermit(@Param('id') id: string): Promise<void> {
+    return this.vehiclePermitService.deleteVehiclePermit(id);
   }
 }
