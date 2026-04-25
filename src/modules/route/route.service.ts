@@ -28,6 +28,7 @@ export class RouteService {
         isActive: data.isActive ?? true,
         isVATZeroRated: data.isVATZeroRated ?? true,
         vatPercentage,
+        routeCurrency: data.routeCurrency ?? 'TZS',
       });
       const saved = await this.repository.save(payload);
       return saved.toDTO();
@@ -55,6 +56,7 @@ export class RouteService {
       entity.isVATZeroRated = data.isVATZeroRated ?? entity.isVATZeroRated;
       entity.vatPercentage =
         data.vatPercentage !== undefined ? Number(data.vatPercentage) : entity.vatPercentage;
+      entity.routeCurrency = data.routeCurrency ?? entity.routeCurrency;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

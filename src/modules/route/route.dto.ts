@@ -17,6 +17,7 @@ export interface RouteModel extends BaseAppModel {
   estimatedDuration?: number;
   isVATZeroRated?: boolean;
   vatPercentage?: number;
+  routeCurrency?: 'USD' | 'TZS';
   isActive: boolean;
 }
 
@@ -59,4 +60,9 @@ export class CreateRouteDTO extends BaseCreateAppDTO {
   @IsNumber()
   @ApiProperty({ example: 18, required: false })
   vatPercentage?: number;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: 'USD', required: false })
+  routeCurrency?: 'USD' | 'TZS';
 }

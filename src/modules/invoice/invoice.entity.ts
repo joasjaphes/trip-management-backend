@@ -41,6 +41,9 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
   @Column({ type: 'int', nullable: false, default: 1 })
   quantity: number;
 
+  @Column({ nullable: true, default: 'TZS' })
+  currency?: 'USD' | 'TZS';
+
   @Column({
     type: 'enum',
     enum: InvoiceStatus,
@@ -80,6 +83,7 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
       rate: Number(this.subtotal) / Number(this.quantity || 1),
       status: this.status,
       issuedAt: this.issuedAt?.toISOString(),
+      currency: this.currency,
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),

@@ -160,6 +160,7 @@ export class TripService {
             subtotal,
             vatAmount,
             quantity: 1,
+            currency: route.routeCurrency ?? 'TZS',
             paymentStatus:
               paidAmount <= 0
                 ? InvoicePaymentStatus.UNPAID

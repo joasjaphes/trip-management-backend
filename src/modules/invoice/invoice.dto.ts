@@ -33,6 +33,7 @@ export interface InvoiceModel extends BaseAppModel {
   paymentStatus: InvoicePaymentStatus;
   quantity: number;
   description?: string;
+  currency?: 'USD' | 'TZS';
   status: InvoiceStatus;
   issuedAt?: string;
   rate?: number;
@@ -60,4 +61,8 @@ export class CreateInvoiceDTO extends BaseCreateAppDTO {
   @IsOptional()
   @ApiProperty({ example: 0, required: false })
   vatAmount?: number;
+  
+  @IsOptional()
+  @ApiProperty({ example: 'USD', required: false })
+  currency?: 'USD' | 'TZS';
 }

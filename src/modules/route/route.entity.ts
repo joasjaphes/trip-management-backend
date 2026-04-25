@@ -28,6 +28,9 @@ export class Route extends BaseAppEntity<RouteModel> {
   @Column({ type: 'float', nullable: true, default: 18 })
   vatPercentage?: number;
 
+  @Column({ nullable: true, length: 3, default: 'TZS' })
+  routeCurrency?: 'USD' | 'TZS';
+
   toDTO(options?: { eager: boolean }): RouteModel {
     return {
       id: this.uid,
@@ -44,6 +47,7 @@ export class Route extends BaseAppEntity<RouteModel> {
       deletedAt: this.deletedAt?.toISOString(),
       isVATZeroRated: this.isVATZeroRated,
       vatPercentage: this.vatPercentage,
+      routeCurrency: this.routeCurrency,
     };
   }
 }

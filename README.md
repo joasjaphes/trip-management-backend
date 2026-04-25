@@ -6,7 +6,7 @@ A comprehensive backend API for managing trips, customers, vendors, purchase ord
 - [Base Configuration](#base-configuration)
 - [Authentication](#authentication)
 - [API Endpoints](#api-endpoints)
-- [Purchase Orders](#purchase-orders-api-purchase-orders)
+- [Purchase Orders](#purchaseOrders-api-purchaseOrders)
 - [Data Models](#data-models)
 - [Migrations](#migrations)
 - [Error Handling](#error-handling)
@@ -642,21 +642,21 @@ If `vendorId` is not supplied, the API can still accept `vendorName` and `vendor
 
 ---
 
-### Purchase Orders (`/api/purchase-orders`)
+### Purchase Orders (`/api/purchaseOrders`)
 
 #### Get All Purchase Orders
 ```http
-GET /api/purchase-orders
+GET /api/purchaseOrders
 ```
 
 #### Get Purchase Order by ID
 ```http
-GET /api/purchase-orders/:id
+GET /api/purchaseOrders/:id
 ```
 
 #### Create Purchase Order
 ```http
-POST /api/purchase-orders
+POST /api/purchaseOrders
 Content-Type: application/json
 
 {
@@ -685,7 +685,7 @@ Content-Type: application/json
 
 #### Update Purchase Order
 ```http
-PUT /api/purchase-orders
+PUT /api/purchaseOrders
 Content-Type: application/json
 
 {
@@ -726,7 +726,7 @@ Purchase order item fields:
 
 Order status options: `Pending`, `Approved`, `Completed`
 
-Required fields for posting (`POST /api/purchase-orders`):
+Required fields for posting (`POST /api/purchaseOrders`):
 - `purchaseOrderReferenceNumber`
 - `vendorId`
 - `orderDate`

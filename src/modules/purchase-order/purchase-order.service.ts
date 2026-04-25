@@ -1,14 +1,17 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { Expense } from '../expense/expense.entity';
 import { User } from '../user/user.entity';
 import { Vendor } from '../vendor/vendor.entity';
 import {
+  ApprovePurchaseOrderDTO,
+  CompletePurchaseOrderDTO,
   CreatePurchaseOrderDTO,
   CreatePurchaseOrderItemDTO,
   PurchaseOrderModel,
+  PurchaseOrderStatus,
 } from './purchase-order.dto';
 import { PurchaseOrderItem } from './purchase-order-item.entity';
 import { PurchaseOrder } from './purchase-order.entity';
@@ -30,12 +33,14 @@ export class PurchaseOrderService {
 
   async createPurchaseOrder(data: CreatePurchaseOrderDTO): Promise<PurchaseOrderModel> {
     try {
+      const vendor = await this.resolveVendor(data);
       await this.validatePurchaseOrderReferences(data);
 
       const payload = this.repository.create({
         uid: data.id,
         purchaseOrderReferenceNumber: data.purchaseOrderReferenceNumber,
-        vendorUid: data.vendorId,
+        vendorUid: vendor.uid,
+        vendor,
         orderDate: new Date(data.orderDate),
         completionDate: data.completionDate ? new Date(data.completionDate) : undefined,
         approvedDate: data.approvedDate ? new Date(data.approvedDate) : undefined,
@@ -80,11 +85,13 @@ export class PurchaseOrderService {
         throw new NotFoundException(`Purchase order with ID ${data.id} does not exist`);
       }
 
+      const vendor = await this.resolveVendor(data, entity.vendorUid);
       await this.validatePurchaseOrderReferences(data);
 
       entity.purchaseOrderReferenceNumber =
         data.purchaseOrderReferenceNumber || entity.purchaseOrderReferenceNumber;
-      entity.vendorUid = data.vendorId || entity.vendorUid;
+      entity.vendorUid = vendor.uid;
+      entity.vendor = vendor;
       entity.orderDate = data.orderDate ? new Date(data.orderDate) : entity.orderDate;
       entity.completionDate = data.completionDate ? new Date(data.completionDate) : entity.completionDate;
       entity.approvedDate = data.approvedDate ? new Date(data.approvedDate) : entity.approvedDate;
@@ -115,6 +122,86 @@ export class PurchaseOrderService {
       return (refreshed ?? updated).toDTO();
     } catch (e) {
       Logger.error('Failed to update purchase order', e);
+      throw e;
+    }
+  }
+
+  async approvePurchaseOrder(
+    id: string,
+    data: ApprovePurchaseOrderDTO,
+    actorUserId?: string,
+  ): Promise<PurchaseOrderModel> {
+    try {
+      const entity = await this.repository.findOne({ where: { uid: id } });
+      if (!entity) {
+        throw new NotFoundException(`Purchase order with ID ${id} not found`);
+      }
+
+      if (entity.orderStatus === PurchaseOrderStatus.COMPLETED) {
+        throw new BadRequestException('Completed purchase orders cannot be approved again');
+      }
+
+      await this.validateUserIfProvided(actorUserId, 'approvedByUserId');
+      await this.validateOrderItems(data.orderItems);
+
+      await this.repository.manager.transaction(async (manager) => {
+        const transactionRepository = manager.getRepository(PurchaseOrder);
+        const purchaseOrder = await transactionRepository.findOne({ where: { uid: id } });
+        if (!purchaseOrder) {
+          throw new NotFoundException(`Purchase order with ID ${id} not found`);
+        }
+
+        purchaseOrder.orderStatus = PurchaseOrderStatus.APPROVED;
+        purchaseOrder.approvedDate = data.approvedDate ? new Date(data.approvedDate) : new Date();
+        purchaseOrder.approvedByUserUid = actorUserId ?? purchaseOrder.approvedByUserUid;
+
+        await transactionRepository.save(purchaseOrder);
+        await this.replaceOrderItems(manager, purchaseOrder.uid, data.orderItems);
+      });
+
+      return this.getPurchaseOrderById(id);
+    } catch (e) {
+      Logger.error('Failed to approve purchase order', e);
+      throw e;
+    }
+  }
+
+  async completePurchaseOrder(
+    id: string,
+    data: CompletePurchaseOrderDTO,
+    actorUserId?: string,
+  ): Promise<PurchaseOrderModel> {
+    try {
+      const entity = await this.repository.findOne({ where: { uid: id } });
+      if (!entity) {
+        throw new NotFoundException(`Purchase order with ID ${id} not found`);
+      }
+
+      if (entity.orderStatus === PurchaseOrderStatus.PENDING) {
+        throw new BadRequestException('Purchase order must be approved before completion');
+      }
+
+      await this.validateUserIfProvided(actorUserId, 'completedByUserId');
+      await this.validateOrderItems(data.orderItems);
+
+      await this.repository.manager.transaction(async (manager) => {
+        const transactionRepository = manager.getRepository(PurchaseOrder);
+        const purchaseOrder = await transactionRepository.findOne({ where: { uid: id } });
+        if (!purchaseOrder) {
+          throw new NotFoundException(`Purchase order with ID ${id} not found`);
+        }
+
+        purchaseOrder.orderStatus = PurchaseOrderStatus.COMPLETED;
+        purchaseOrder.completionDate = data.completionDate ? new Date(data.completionDate) : new Date();
+        purchaseOrder.completedByUserUid = actorUserId ?? purchaseOrder.completedByUserUid;
+
+        await transactionRepository.save(purchaseOrder);
+        await this.replaceOrderItems(manager, purchaseOrder.uid, data.orderItems);
+      });
+
+      return this.getPurchaseOrderById(id);
+    } catch (e) {
+      Logger.error('Failed to complete purchase order', e);
       throw e;
     }
   }
@@ -158,14 +245,52 @@ export class PurchaseOrderService {
   }
 
   private async validatePurchaseOrderReferences(data: CreatePurchaseOrderDTO): Promise<void> {
-    const vendor = await this.vendorRepository.findOne({ where: { uid: data.vendorId } });
-    if (!vendor) {
-      throw new BadRequestException(`Vendor with ID ${data.vendorId} not found`);
-    }
-
     await this.validateUserIfProvided(data.completedByUserId, 'completedByUserId');
     await this.validateUserIfProvided(data.approvedByUserId, 'approvedByUserId');
     await this.validateOrderItems(data.orderItems);
+  }
+
+  private async resolveVendor(
+    data: Pick<CreatePurchaseOrderDTO, 'vendorId' | 'vendorName' | 'vendorTIN'>,
+    currentVendorId?: string,
+  ): Promise<Vendor> {
+    const vendorId = data.vendorId?.trim();
+    if (vendorId) {
+      return this.validateVendor(vendorId);
+    }
+
+    const vendorName = data.vendorName?.trim();
+    if (vendorName) {
+      const vendorTIN = data.vendorTIN?.trim();
+      let vendor = vendorTIN
+        ? await this.vendorRepository.findOne({ where: { vendorTIN } })
+        : await this.vendorRepository.findOne({ where: { vendorName } });
+
+      if (!vendor) {
+        vendor = this.vendorRepository.create({
+          uid: randomUUID(),
+          vendorName,
+          vendorTIN,
+        });
+        vendor = await this.vendorRepository.save(vendor);
+      }
+
+      return vendor;
+    }
+
+    if (currentVendorId) {
+      return this.validateVendor(currentVendorId);
+    }
+
+    throw new BadRequestException('vendorId or vendorName is required');
+  }
+
+  private async validateVendor(vendorId: string): Promise<Vendor> {
+    const vendor = await this.vendorRepository.findOne({ where: { uid: vendorId } });
+    if (!vendor) {
+      throw new BadRequestException(`Vendor with ID ${vendorId} not found`);
+    }
+    return vendor;
   }
 
   private async validateUserIfProvided(userId: string | undefined, fieldName: string): Promise<void> {
@@ -190,5 +315,27 @@ export class PurchaseOrderService {
         throw new BadRequestException(`Expense with ID ${itemId} not found for orderItems`);
       }
     }
+  }
+
+  private async replaceOrderItems(
+    manager: EntityManager,
+    purchaseOrderUid: string,
+    orderItems: CreatePurchaseOrderItemDTO[],
+  ): Promise<void> {
+    const transactionItemRepository = manager.getRepository(PurchaseOrderItem);
+
+    await transactionItemRepository.delete({ purchaseOrderUid });
+
+    const replacementItems = orderItems.map((item) =>
+      transactionItemRepository.create({
+        uid: randomUUID(),
+        purchaseOrderUid,
+        itemUid: item.itemId,
+        description: item.description,
+        amount: Number(item.amount),
+      }),
+    );
+
+    await transactionItemRepository.save(replacementItems);
   }
 }

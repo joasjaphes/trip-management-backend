@@ -70,9 +70,19 @@ export class CreatePurchaseOrderDTO extends BaseCreateAppDTO {
   purchaseOrderReferenceNumber: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: 'vendor-uid-123' })
-  vendorId: string;
+  @IsOptional()
+  @ApiProperty({ example: 'vendor-uid-123', required: false })
+  vendorId?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'Petrol Station Ltd', required: false })
+  vendorName?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'TIN-123456789', required: false })
+  vendorTIN?: string;
 
   @IsDateString()
   @ApiProperty({ example: '2026-04-22T10:30:00.000Z' })
@@ -101,6 +111,52 @@ export class CreatePurchaseOrderDTO extends BaseCreateAppDTO {
   @IsEnum(PurchaseOrderStatus)
   @ApiProperty({ enum: PurchaseOrderStatus, example: PurchaseOrderStatus.PENDING })
   orderStatus: PurchaseOrderStatus;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreatePurchaseOrderItemDTO)
+  @ApiProperty({
+    type: [CreatePurchaseOrderItemDTO],
+    example: [
+      {
+        itemId: 'expense-uid-123',
+        description: 'Fuel for trip operations',
+        amount: 350000,
+      },
+    ],
+  })
+  orderItems: CreatePurchaseOrderItemDTO[];
+}
+
+export class ApprovePurchaseOrderDTO {
+  @IsDateString()
+  @IsOptional()
+  @ApiProperty({ example: '2026-04-23T09:00:00.000Z', required: false })
+  approvedDate?: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreatePurchaseOrderItemDTO)
+  @ApiProperty({
+    type: [CreatePurchaseOrderItemDTO],
+    example: [
+      {
+        itemId: 'expense-uid-123',
+        description: 'Fuel for trip operations',
+        amount: 350000,
+      },
+    ],
+  })
+  orderItems: CreatePurchaseOrderItemDTO[];
+}
+
+export class CompletePurchaseOrderDTO {
+  @IsDateString()
+  @IsOptional()
+  @ApiProperty({ example: '2026-04-25T14:00:00.000Z', required: false })
+  completionDate?: string;
 
   @IsArray()
   @ArrayMinSize(1)
