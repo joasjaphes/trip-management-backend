@@ -62,6 +62,8 @@ export class TripService {
 
         const revenue = Number(data.revenue);
         const income = Number(data.income);
+        const exchangeRate = data.exchangeRate !== undefined ? Number(data.exchangeRate) : 1;
+        const equivalentAmount = revenue * exchangeRate;
         const cargoQuantity =
           data.cargoQuantity !== undefined ? Number(data.cargoQuantity) : undefined;
         let vatAmount = 0;
@@ -126,6 +128,8 @@ export class TripService {
           subtotal,
           vatAmount,
           income,
+          exchangeRate,
+          equivalentAmount,
           status: data.status,
           notes: data.notes,
           tripDocument: data.tripDocument,
@@ -156,6 +160,8 @@ export class TripService {
             invoiceNumber: `INV-${Date.now()}`,
             customerUid: customer.uid,
             amount: saved.revenue,
+            exchangeRate: saved.exchangeRate,
+            equivalentAmount: saved.equivalentAmount,
             paidAmount,
             subtotal,
             vatAmount,
@@ -296,7 +302,8 @@ export class TripService {
         entity.notes = data.notes ?? entity.notes;
         entity.tripDocument = data.tripDocument ?? entity.tripDocument;
         entity.completionDocument = data.completionDocument ?? entity.completionDocument;
-
+        entity.exchangeRate = data.exchangeRate !== undefined ? Number(data.exchangeRate) : entity.exchangeRate;
+        entity.equivalentAmount = data.exchangeRate !== undefined ? entity.revenue * entity.exchangeRate! : entity.equivalentAmount;
         const updated = await tripRepository.save(entity);
 
         if (updated.invoiceUid) {
@@ -362,7 +369,7 @@ export class TripService {
 
       const totalTrips = tripsInRange.length;
       const totalRevenue = tripsInRange.reduce(
-        (sum, trip) => sum + Number(trip.revenue ?? 0),
+        (sum, trip) => sum + (Number(trip.revenue ?? 0) * Number(trip.exchangeRate ?? 1)),
         0,
       );
       const inProgressTrips = tripsInRange.filter(
@@ -372,8 +379,8 @@ export class TripService {
         (trip) => trip.status === TripStatus.COMPLETED,
       ).length;
       const outstandingAmount = tripsInRange.reduce((sum, trip) => {
-        const revenue = Number(trip.revenue ?? 0);
-        const paidAmount = Number(trip.paidAmount ?? 0);
+        const revenue = Number(trip.revenue ?? 0) * Number(trip.exchangeRate ?? 1);
+        const paidAmount = Number(trip.paidAmount ?? 0) * Number(trip.exchangeRate ?? 1);
         return sum + Math.max(revenue - paidAmount, 0);
       }, 0);
 
@@ -513,6 +520,12 @@ export class TripService {
       0,
     );
     invoice.quantity = linkedTrips.length;
+
+    invoice.exchangeRate = linkedTrips[0]?.exchangeRate;
+    invoice.equivalentAmount = linkedTrips.reduce(
+      (sum, trip) => sum + Number(trip.equivalentAmount ?? 0),
+      0,
+    );
 
     const routeNames = Array.from(
       new Set(linkedTrips.map((trip) => trip.route?.name).filter(Boolean)),

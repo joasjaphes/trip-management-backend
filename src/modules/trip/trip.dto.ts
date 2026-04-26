@@ -49,6 +49,8 @@ export interface TripModel extends BaseAppModel {
   offloadingPlace?: OffloadingPlaceModel;
   offloadingPlaceName?: string;
   revenue: number;
+  exchangeRate?: number;
+  equivalentAmount?: number;
   vatAmount?: number;
   subtotal?: number;
   paidAmount: number;
@@ -114,6 +116,11 @@ export class CreateTripDTO extends BaseCreateAppDTO {
 
 
 
+  @IsOptional()
+  @IsNumber()
+  @ApiProperty({ example: 1000, required: false })
+  exchangeRate?: number;
+  
   @IsOptional()
   @IsNumber()
   @ApiProperty({ example: 0, required: false })

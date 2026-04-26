@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, VirtualColumn } from 'typeorm';
 import { BaseAppEntity } from '../../shared/base-app-entity';
 import {
   InvoiceModel,
@@ -22,11 +22,22 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
   @Column({ type: 'float', nullable: false, default: 0 })
   subtotal: number;
 
+  @Column({ type: 'float', nullable: true, default: 1 })
+  exchangeRate?: number;
+  
+  @Column({ type: 'float', nullable: true, default: 0 })
+  equivalentAmount?: number;
+
   @Column({ type: 'float', nullable: true, default: 0 })
   vatAmount?: number;
 
   @Column({ type: 'float', nullable: false, default: 0 })
   paidAmount: number;
+
+  @VirtualColumn({
+    query:(alias) => `${alias}.paidAmount * ${alias}.exchangeRate`,
+  })
+  equivalentPaidAmount?: number;
 
   @Column({
     type: 'enum',
@@ -77,8 +88,11 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
       subtotal: this.subtotal,
       vatAmount: this.vatAmount,
       paidAmount: this.paidAmount,
+      exchangeRate: this.exchangeRate,
+      equivalentAmount: this.equivalentAmount,
+      equivalentPaidAmount: this.equivalentPaidAmount,
       paymentStatus: this.paymentStatus,
-      description: `${this.description} (${this.trips?.map(trip => trip.docNumber).join(', ')})`,
+      description: `${this.description} (${this.trips?.map(entity => entity.docNumber).join(', ')})`,
       quantity: this.quantity,
       rate: Number(this.subtotal) / Number(this.quantity || 1),
       status: this.status,

@@ -51,6 +51,12 @@ export class Trip extends BaseAppEntity<TripModel> {
   @Column({ type: 'float', nullable: false })
   revenue: number;
 
+  @Column({ type: 'float', nullable: true, default: 1 })
+  exchangeRate?: number;
+
+  @Column({ type: 'float', nullable: true, default: 0 })
+  equivalentAmount?: number;
+
   @Column({ type: 'float', nullable: true, default: 0 })
   vatAmount?: number;
   @Column({ type: 'float', nullable: true, default: 0 })
@@ -147,6 +153,8 @@ export class Trip extends BaseAppEntity<TripModel> {
       offloadingPlaceName: this.offloadingPlace?.name,
       offloadingPlace: this.offloadingPlace?.toDTO(),
       revenue: this.revenue,
+      exchangeRate: this.exchangeRate,
+      equivalentAmount: this.equivalentAmount,
       vatAmount: this.vatAmount,
       subtotal: this.subtotal,
       paidAmount: this.paidAmount,
