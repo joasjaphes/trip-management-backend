@@ -34,11 +34,6 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
   @Column({ type: 'float', nullable: false, default: 0 })
   paidAmount: number;
 
-  @VirtualColumn({
-    query:(alias) => `${alias}.paidAmount * ${alias}.exchangeRate`,
-  })
-  equivalentPaidAmount?: number;
-
   @Column({
     type: 'enum',
     enum: InvoicePaymentStatus,
@@ -90,7 +85,6 @@ export class Invoice extends BaseAppEntity<InvoiceModel> {
       paidAmount: this.paidAmount,
       exchangeRate: this.exchangeRate,
       equivalentAmount: this.equivalentAmount,
-      equivalentPaidAmount: this.equivalentPaidAmount,
       paymentStatus: this.paymentStatus,
       description: `${this.description} (${this.trips?.map(entity => entity.docNumber).join(', ')})`,
       quantity: this.quantity,
