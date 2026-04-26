@@ -44,6 +44,8 @@ export interface PurchaseOrderModel extends BaseAppModel {
   approvedByUser?: UserModel;
   orderStatus: PurchaseOrderStatus;
   orderItems: PurchaseOrderItemModel[];
+  attachment?: string;
+  completionAttachment?: string;
 }
 
 export class CreatePurchaseOrderItemDTO {
@@ -64,10 +66,6 @@ export class CreatePurchaseOrderItemDTO {
 }
 
 export class CreatePurchaseOrderDTO extends BaseCreateAppDTO {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: 'PO-2026-001' })
-  purchaseOrderReferenceNumber: string;
 
   @IsString()
   @IsOptional()
@@ -111,6 +109,11 @@ export class CreatePurchaseOrderDTO extends BaseCreateAppDTO {
   @IsEnum(PurchaseOrderStatus)
   @ApiProperty({ enum: PurchaseOrderStatus, example: PurchaseOrderStatus.PENDING })
   orderStatus: PurchaseOrderStatus;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'attachment-uid-123', required: false })
+  attachment?: string;
 
   @IsArray()
   @ArrayMinSize(1)
@@ -157,6 +160,11 @@ export class CompletePurchaseOrderDTO {
   @IsOptional()
   @ApiProperty({ example: '2026-04-25T14:00:00.000Z', required: false })
   completionDate?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'attachment-uid-123', required: false })
+  completionAttachment?: string;
 
   @IsArray()
   @ArrayMinSize(1)

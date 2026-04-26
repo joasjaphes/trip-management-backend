@@ -38,7 +38,7 @@ export class PurchaseOrderService {
 
       const payload = this.repository.create({
         uid: data.id,
-        purchaseOrderReferenceNumber: data.purchaseOrderReferenceNumber,
+        purchaseOrderReferenceNumber: `PO-${new Date().getTime()}`,
         vendorUid: vendor.uid,
         vendor,
         orderDate: new Date(data.orderDate),
@@ -88,8 +88,7 @@ export class PurchaseOrderService {
       const vendor = await this.resolveVendor(data, entity.vendorUid);
       await this.validatePurchaseOrderReferences(data);
 
-      entity.purchaseOrderReferenceNumber =
-        data.purchaseOrderReferenceNumber || entity.purchaseOrderReferenceNumber;
+      entity.purchaseOrderReferenceNumber = entity.purchaseOrderReferenceNumber;
       entity.vendorUid = vendor.uid;
       entity.vendor = vendor;
       entity.orderDate = data.orderDate ? new Date(data.orderDate) : entity.orderDate;
@@ -194,6 +193,7 @@ export class PurchaseOrderService {
         purchaseOrder.orderStatus = PurchaseOrderStatus.COMPLETED;
         purchaseOrder.completionDate = data.completionDate ? new Date(data.completionDate) : new Date();
         purchaseOrder.completedByUserUid = actorUserId ?? purchaseOrder.completedByUserUid;
+        purchaseOrder.completionAttachment = data.completionAttachment ?? purchaseOrder.completionAttachment;
 
         await transactionRepository.save(purchaseOrder);
         await this.replaceOrderItems(manager, purchaseOrder.uid, data.orderItems);

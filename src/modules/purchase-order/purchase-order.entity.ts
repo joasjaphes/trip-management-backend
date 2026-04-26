@@ -54,6 +54,12 @@ export class PurchaseOrder extends BaseAppEntity<PurchaseOrderModel> {
   })
   orderItems: PurchaseOrderItem[];
 
+  @Column({ type: 'text', nullable: true })
+  attachment?: string;
+
+  @Column({ type: 'text', nullable: true })
+  completionAttachment?: string;
+
   toDTO(options?: { eager: boolean }): PurchaseOrderModel {
     return {
       id: this.uid,
@@ -68,9 +74,11 @@ export class PurchaseOrder extends BaseAppEntity<PurchaseOrderModel> {
       completedByUserId: this.completedByUserUid,
       completedByUser: this.completedByUser?.toDTO(),
       approvedByUserId: this.approvedByUserUid,
+      attachment: this.attachment,
       approvedByUser: this.approvedByUser?.toDTO(),
       orderStatus: this.orderStatus,
       orderItems: this.orderItems ? this.orderItems.map((item) => item.toDTO()) : [],
+      completionAttachment: this.completionAttachment,
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),
