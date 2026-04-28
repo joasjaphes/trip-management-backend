@@ -18,6 +18,9 @@ export class PurchaseOrderItem extends BaseAppEntity<PurchaseOrderItemModel> {
   @Column({ type: 'float', nullable: false })
   amount: number;
 
+  @Column({ type: 'float', nullable: false, default: 1 })
+  quantity: number;
+
   @ManyToOne(() => PurchaseOrder, (purchaseOrder) => purchaseOrder.orderItems, { nullable: false })
   @JoinColumn({ name: 'purchaseOrderUid', referencedColumnName: 'uid' })
   purchaseOrder: PurchaseOrder;
@@ -35,6 +38,7 @@ export class PurchaseOrderItem extends BaseAppEntity<PurchaseOrderItemModel> {
       item: this.item?.toDTO(),
       description: this.description,
       amount: this.amount,
+      quantity: this.quantity,
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),

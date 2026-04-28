@@ -53,6 +53,7 @@ export class PurchaseOrderService {
             itemUid: item.itemId,
             description: item.description,
             amount: Number(item.amount),
+            quantity: Number(item.quantity) ?? 1,
           }),
         ),
       });
@@ -104,6 +105,7 @@ export class PurchaseOrderService {
           itemUid: item.itemId,
           description: item.description,
           amount: Number(item.amount),
+          quantity: Number(item.quantity) ?? 1,
         }),
       );
 
@@ -333,9 +335,28 @@ export class PurchaseOrderService {
         itemUid: item.itemId,
         description: item.description,
         amount: Number(item.amount),
+        quantity: Number(item.quantity) ?? 1,
       }),
     );
 
     await transactionItemRepository.save(replacementItems);
+  }
+
+  async deletePurchaseOrder(id: string): Promise<PurchaseOrderModel> {
+    try {
+      const entity = await this.repository.findOne({ where: { uid: id, deleted: false } });
+      if (!entity) {
+        throw new NotFoundException(`Purchase order with ID ${id} not found`);
+      }
+
+      entity.deleted = true;
+      entity.deletedAt = new Date();
+
+      const deletedEntity = await this.repository.save(entity);
+      return deletedEntity.toDTO();
+    } catch (e) {
+      Logger.error('Failed to delete purchase order', e);
+      throw e;
+    }
   }
 }

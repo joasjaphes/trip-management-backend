@@ -29,6 +29,7 @@ export interface PurchaseOrderItemModel extends BaseAppModel {
   item?: ExpenseModel;
   description: string;
   amount: number;
+  quantity: number;
 }
 
 export interface PurchaseOrderModel extends BaseAppModel {
@@ -63,6 +64,12 @@ export class CreatePurchaseOrderItemDTO {
   @Min(0.01)
   @ApiProperty({ example: 350000 })
   amount: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  @ApiProperty({ example: 1, required: false })
+  quantity?: number;
 }
 
 export class CreatePurchaseOrderDTO extends BaseCreateAppDTO {

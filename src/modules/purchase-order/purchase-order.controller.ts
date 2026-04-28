@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Request, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CurrentUserInterceptor } from '../../interceptors/current-user.interceptor';
 import {
   ApprovePurchaseOrderDTO,
@@ -54,5 +54,10 @@ export class PurchaseOrderController {
     @Request() req: any,
   ): Promise<PurchaseOrderModel> {
     return this.purchaseOrderService.completePurchaseOrder(id, data, req.currentUser?.uid ?? req.currentUser?.id);
+  }
+
+  @Delete('/:id')
+  async deletePurchaseOrder(@Param('id') id: string): Promise<PurchaseOrderModel> {
+    return this.purchaseOrderService.deletePurchaseOrder(id);
   }
 }
