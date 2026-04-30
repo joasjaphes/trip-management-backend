@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
+import { Role } from '../role/role.entity';
 import * as bcrypt from 'bcrypt';
 import { makeId } from '../../shared/constants';
 
@@ -12,6 +13,8 @@ export class UserSeed {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @InjectRepository(Role)
+        private readonly roleRepository: Repository<Role>,
     ) { }
 
     async run() {
@@ -26,13 +29,30 @@ export class UserSeed {
             where: { username: defaultUsername },
         });
 
-        if (existingUser) {
-            this.logger.log(`Default user already exists: ${defaultUsername}`);
-            return;
-        }
-
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(defaultPassword, salt);
+        const adminRole = await this.roleRepository.findOne({
+            where: { name: 'Admin' },
+        });
+
+        if (!adminRole) {
+            throw new Error('Required role not found: Admin');
+        }
+
+        if (existingUser) {
+            existingUser.firstName = firstName;
+            existingUser.surname = surname;
+            existingUser.email = defaultEmail;
+            existingUser.phoneNumber = defaultPhone;
+            existingUser.password = hashedPassword;
+            existingUser.salt = salt;
+            existingUser.roles = [adminRole];
+
+            await this.userRepository.save(existingUser);
+
+            this.logger.log(`Default user updated: ${defaultUsername}`);
+            return;
+        }
 
         const user = this.userRepository.create({
             uid: makeId(),
@@ -43,6 +63,7 @@ export class UserSeed {
             username: defaultUsername,
             password: hashedPassword,
             salt,
+            roles: [adminRole],
         });
 
         await this.userRepository.save(user);

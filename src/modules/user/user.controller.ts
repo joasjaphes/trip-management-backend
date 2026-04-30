@@ -42,13 +42,14 @@ export class UserController {
   @Get('/me')
   me(@Request() req: any): userDto.UserModel {
     const user: User = req.currentUser;
+    console.log('Fetching current user info for:', user.username);
     return this.userService.getMe(user);
   }
 
   @UseGuards(AuthGuard)
   @Get('/:id')
   async getUserById(@Param('id') id: string): Promise<userDto.UserModel | null> {
-    return await this.userService.getUserById(id);
+    return await this.userService.getUserById(id, true);
   }
 
   @Post()
@@ -60,13 +61,13 @@ export class UserController {
       });
     }
     const newUser = await this.userService.createUser(user);
-    return newUser.toDTO();
+    return newUser.toDTO({ eager: true });
   }
 
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe())
   @Put()
-  async updateUser(@Body() user: userDto.CreateUserDTO): Promise<userDto.UserModel> {
+  async updateUser(@Body() user: userDto.UpdateUserDTO): Promise<userDto.UserModel> {
     return await this.userService.updateUser(user);
   }
 
@@ -100,9 +101,6 @@ export class UserController {
     res.status(200).send({ message: 'Password changed successfully' });
   }
 
-  @Public()
-  @Post('/signin')
-  async login(@Body() credentials: CredentialDTO) {
-    return await this.userService.login(credentials);
-  }
+  
+ 
 }

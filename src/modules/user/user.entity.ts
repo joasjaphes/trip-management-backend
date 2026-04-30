@@ -1,7 +1,8 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToMany, JoinTable, VirtualColumn } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
 import { UserModel } from './user.dto';
+import { Role } from '../role/role.entity';
 import { BaseAppEntity } from '../../shared/base-app-entity';
 
 @Entity('users')
@@ -21,6 +22,10 @@ export class User extends BaseAppEntity<UserModel> {
   @Column({ nullable: false })
   salt: string;
 
+  @ManyToMany(() => Role, { eager: false })
+  @JoinTable({ name: 'user_roles' })
+  roles?: Role[];
+
   async validatePassword(password: string) {
     const hash = await bcrypt.hash(password, this.salt);
     return hash === this.password;
@@ -38,6 +43,9 @@ export class User extends BaseAppEntity<UserModel> {
       email: this.email,
       phoneNumber: this.phoneNumber,
       username: this.username,
+      roles: eager && this.roles ? this.roles.map((r) => r.uid) : undefined,
+      roleName: this.roles ? this.roles.map((r) => r.name).join(' | ') : undefined,
+      isActive: this.active,
     };
   }
 }

@@ -16,12 +16,16 @@ import { TripExpense } from '../modules/trip-expense/trip-expense.entity';
 import { Trip } from '../modules/trip/trip.entity';
 import { Vendor } from '../modules/vendor/vendor.entity';
 import { User } from '../modules/user/user.entity';
+import { Role } from '../modules/role/role.entity';
+import { Permission } from '../modules/permission/permission.entity';
 import { VehiclePermit } from '../modules/vehicle-permit/vehicle-permit.entity';
 import { Vehicle } from '../modules/vehicle/vehicle.entity';
 import { BaseAppEntity } from './base-app-entity';
 
 export const entities = [
   User,
+  Role,
+  Permission,
   CargoType,
   CompanyProfile,
   Customer,

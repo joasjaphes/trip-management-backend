@@ -48,6 +48,9 @@ import { OffloadingPlaceService } from './modules/offloading-place/offloading-pl
 import { ReceiptController } from './modules/receipt/receipt.controller';
 import { ReceiptService } from './modules/receipt/receipt.service';
 import { AuthGuard } from './guards/auth.guard';
+import { RoleController } from './modules/role/role.controller';
+import { RoleService } from './modules/role/role.service';
+import { PermissionService } from './modules/permission/permission.service';
 
 
 const DATABASE_HOST = process.env.DATABASE_HOST;
@@ -104,6 +107,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     IssuingBodyController,
     OffloadingPlaceController,
     ReceiptController,
+    RoleController,
   ],
   providers: [
     AppService,
@@ -131,6 +135,8 @@ const isProduction = process.env.NODE_ENV === 'production';
     IssuingBodyService,
     OffloadingPlaceService,
     ReceiptService,
+    RoleService,
+    PermissionService,
   ],
 })
 export class AppModule {}

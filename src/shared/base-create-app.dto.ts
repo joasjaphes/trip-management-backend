@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
-import { MaximumIdLength, MinimumIdLength } from './constants';
+import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { makeId, MaximumIdLength, MinimumIdLength } from './constants';
 
 export abstract class BaseCreateAppDTO {
   @IsString()
@@ -9,7 +9,8 @@ export abstract class BaseCreateAppDTO {
   })
   @ApiProperty({
     example: 'abcDEFG1234',
+    default: makeId(),
   })
-  @IsNotEmpty()
+  @IsOptional()
   id: string;
 }

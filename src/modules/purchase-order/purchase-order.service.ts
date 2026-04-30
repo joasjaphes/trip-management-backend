@@ -29,7 +29,7 @@ export class PurchaseOrderService {
     private userRepository: Repository<User>,
     @InjectRepository(Expense)
     private expenseRepository: Repository<Expense>,
-  ) {}
+  ) { }
 
   async createPurchaseOrder(data: CreatePurchaseOrderDTO): Promise<PurchaseOrderModel> {
     try {
@@ -98,18 +98,18 @@ export class PurchaseOrderService {
       entity.completedByUserUid = data.completedByUserId ?? entity.completedByUserUid;
       entity.approvedByUserUid = data.approvedByUserId ?? entity.approvedByUserUid;
       entity.orderStatus = data.orderStatus || entity.orderStatus;
-      entity.orderItems = data.orderItems.map((item) =>
-        this.itemRepository.create({
-          uid: randomUUID(),
-          purchaseOrderUid: entity.uid,
-          itemUid: item.itemId,
-          description: item.description,
-          amount: Number(item.amount),
-          quantity: Number(item.quantity) ?? 1,
-        }),
-      );
-
+      // entity.orderItems = data.orderItems.map((item) =>
+      //   this.itemRepository.create({
+      //     uid: randomUUID(),
+      //     purchaseOrderUid: entity.uid,
+      //     itemUid: item.itemId,
+      //     description: item.description,
+      //     amount: Number(item.amount),
+      //     quantity: Number(item.quantity) ?? 1,
+      //   }),
+      // );
       const updated = await this.repository.save(entity);
+      await this.replaceOrderItems(this.repository.manager, entity.uid, data.orderItems);
       const refreshed = await this.repository.findOne({
         where: { uid: updated.uid },
         relations: {

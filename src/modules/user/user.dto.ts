@@ -2,11 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BaseAppModel } from '../../shared/base-app-dto';
 import { BaseCreateAppDTO } from '../../shared/base-create-app.dto';
 import {
+  IsArray,
   IsEmail,
   IsNotEmpty,
   IsOptional,
   IsString,
   Matches,
+  ValidateIf,
 } from 'class-validator';
 import {
   passwordRegex,
@@ -20,6 +22,10 @@ export interface UserModel extends BaseAppModel {
   phoneNumber: string;
   username: string;
   password?: string;
+  roles?: string[];
+  roleName?: string;
+  permissions?: string[];
+  isActive?: boolean;
 }
 
 export class CreateUserDTO extends BaseCreateAppDTO {
@@ -39,23 +45,24 @@ export class CreateUserDTO extends BaseCreateAppDTO {
   })
   surname: string;
 
+  @ValidateIf((_, value) => !!value)
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     example: '255712345678',
     required: true,
   })
   phoneNumber: string;
 
-  /*
+  
   @IsString()
-  @IsEmpty()
+  @IsNotEmpty()
   @ApiProperty({
     example: '255712345678',
     required: false,
   })
-  username?: string;
-  */
+  username: string;
+  
 
   @IsString()
   @IsNotEmpty()
@@ -68,13 +75,87 @@ export class CreateUserDTO extends BaseCreateAppDTO {
   })
   password: string;
 
-  @IsEmail()
-  @IsOptional()
+  @ValidateIf((_, value) => !!value)
+  @IsEmail(undefined, {
+    message: 'Email must be a valid email address.',
+  })
   @ApiProperty({
     example: 'user@example.com',
     required: false,
   })
   email?: string;
+
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  @ApiProperty({
+    example: ['role-uid-123', 'role-uid-456'],
+    required: false,
+    description: 'Array of role UIDs to assign to the user',
+  })
+  roles?: string[];
+
+  @IsOptional()
+  @ApiProperty({
+    example: true,
+    required: false,
+    default: true,
+    description: 'Whether the user should be active upon creation',
+  })
+  isActive?: boolean;
+}
+
+export class UpdateUserDTO extends BaseCreateAppDTO {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'John',
+    required: true,
+  })
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'Doe',
+    required: true,
+  })
+  surname: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    example: '255712345678',
+    required: true,
+  })
+  phoneNumber: string;
+
+  @ValidateIf((_, value) => !!value)
+  @IsEmail()
+  @ApiProperty({
+    example: 'user@example.com',
+    required: false,
+  })
+  email?: string;
+
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  @ApiProperty({
+    example: ['role-uid-123', 'role-uid-456'],
+    required: false,
+    description: 'Array of role UIDs to assign to the user',
+  })
+  roles?: string[];
+
+  @IsOptional()
+  @ApiProperty({
+    example: true,
+    required: false,
+    default: true,
+    description: 'Whether the user should be active',
+  })
+  isActive?: boolean;
 }
 
 export class ResetPasswordDTO {
