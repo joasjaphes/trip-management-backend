@@ -328,6 +328,28 @@ export class TripService {
     }
   }
 
+  async updateTripActualPosition(
+    tripId: string,
+    tripActualPosition: string,
+  ): Promise<TripModel> {
+    try {
+      const entity = await this.repository.findOne({
+        where: { uid: tripId },
+        relations: { expenses: true, customer: true, offloadingPlace: true, trailer: true, vehicle: true, driver: true, route: true, cargoType: true },
+      });
+      if (!entity) {
+        throw new NotFoundException(`Trip with ID ${tripId} not found`);
+      }
+
+      entity.tripActualPosition = tripActualPosition;
+      const updated = await this.repository.save(entity);
+      return updated.toDTO({ eager: true });
+    } catch (e) {
+      Logger.error('Failed to update trip actual position', e);
+      throw e;
+    }
+  }
+
   async getAllTrips(): Promise<TripModel[]> {
     try {
       const entities = await this.repository.find({ relations: { expenses: true, vehicle: true, driver: true, route: true, cargoType: true, customer: true, offloadingPlace: true, trailer: true } });
@@ -378,6 +400,9 @@ export class TripService {
       const completedTrips = tripsInRange.filter(
         (trip) => trip.status === TripStatus.COMPLETED,
       ).length;
+      const overStayedTrips = tripsInRange.filter(
+        (trip) => trip.isOverstayed && trip.status === TripStatus.IN_PROGRESS,
+      ).length;
       const outstandingAmount = tripsInRange.reduce((sum, trip) => {
         const revenue = Number(trip.revenue ?? 0) * Number(trip.exchangeRate ?? 1);
         const paidAmount = Number(trip.paidAmount ?? 0) * Number(trip.exchangeRate ?? 1);
@@ -406,7 +431,8 @@ export class TripService {
         activeTrips: inProgressTrips,
         outstandingAmount,
         completedTrips,
-        inProgressTrips,
+        inProgressTrips:inProgressTrips - overStayedTrips,
+        overStayedTrips,
         recentTrips: recentTripsEntities.map((trip) => trip.toDTO({ eager: true })),
       };
     } catch (e) {

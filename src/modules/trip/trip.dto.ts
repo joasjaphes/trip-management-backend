@@ -40,6 +40,7 @@ export interface TripModel extends BaseAppModel {
   docNumber?: string;
   tripDocument?: string;
   completionDocument?: string;
+  tripActualPosition?: string;
   routeId: string;
   cargoTypeId: string;
   customerId?: string;
@@ -56,6 +57,8 @@ export interface TripModel extends BaseAppModel {
   paidAmount: number;
   income: number;
   expenses: TripExpenseModel[];
+  isOverstayed?: boolean;
+  daysExceeded?: number;
   status: TripStatus;
   notes?: string;
 }
@@ -67,6 +70,7 @@ export interface TripSummaryStats {
   outstandingAmount: number;
   completedTrips: number;
   inProgressTrips: number;
+  overStayedTrips: number;
   recentTrips: TripModel[];
 }
 
@@ -190,6 +194,11 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @ApiProperty({ example: '/uploads/trip-documents/completion-doc-12345.pdf', required: false })
   completionDocument?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'Lat: -6.7, Lng: 39.2', required: false })
+  tripActualPosition?: string;
+
 
   @IsEnum(TripStatus)
   @ApiProperty({ enum: TripStatus, example: TripStatus.PENDING })
@@ -198,4 +207,16 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @IsOptional()
   @ApiProperty({ example: 'Urgent delivery, handle with care', required: false })
   notes?: string;
+}
+
+export class UpdateTripActualPositionDTO {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: 'trip-uid-123' })
+  tripId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: 'Lat: -6.7, Lng: 39.2' })
+  tripActualPosition: string;
 }

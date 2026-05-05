@@ -9,6 +9,7 @@ import { TripExpense } from '../trip-expense/trip-expense.entity';
 import { Customer } from '../customer/customer.entity';
 import { OffloadingPlace } from '../offloading-place/offloading-place.entity';
 import { Invoice } from '../invoice/invoice.entity';
+import moment from 'moment';
 
 @Entity('trips')
 export class Trip extends BaseAppEntity<TripModel> {
@@ -20,6 +21,9 @@ export class Trip extends BaseAppEntity<TripModel> {
 
   @Column({ type: 'timestamptz', nullable: true })
   endDate?: Date;
+
+  @Column({ nullable: true, type: 'text' })
+  tripActualPosition?: string;
 
   @Column({ nullable: false })
   vehicleUid: string;
@@ -38,7 +42,7 @@ export class Trip extends BaseAppEntity<TripModel> {
 
   @Column({ nullable: true, default: 0 })
   cargoQuantity?: number;
-  
+
   @Column({ nullable: true, type: 'text' })
   tripDocument?: string;
 
@@ -88,11 +92,11 @@ export class Trip extends BaseAppEntity<TripModel> {
   notes?: string;
 
 
-  @ManyToOne(() => Vehicle, { nullable: false , eager: true})
+  @ManyToOne(() => Vehicle, { nullable: false, eager: true })
   @JoinColumn({ name: 'vehicleUid', referencedColumnName: 'uid' })
   vehicle: Vehicle;
 
-  @ManyToOne(() => Vehicle, { nullable: true , eager: true})
+  @ManyToOne(() => Vehicle, { nullable: true, eager: true })
   @JoinColumn({ name: 'trailerUid', referencedColumnName: 'uid' })
   trailer: Vehicle;
 
@@ -162,11 +166,29 @@ export class Trip extends BaseAppEntity<TripModel> {
       expenses: eager ? (this.expenses ?? []).map((expense) => expense.toDTO()) : [],
       tripDocument: this.tripDocument,
       completionDocument: this.completionDocument,
+      tripActualPosition: this.tripActualPosition,
+      isOverstayed: this.isOverstayed,
+      daysExceeded: this.daysExceeded,
       status: this.status,
       notes: this.notes,
       active: this.active,
       deleted: this.deleted,
       deletedAt: this.deletedAt?.toISOString(),
     };
+  }
+
+  // private static MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  get daysExceeded(): number {
+    const est = this.route?.estimatedDuration ?? 0;
+    const now = moment(new Date());
+    const tripStart = moment(this.tripDate);
+    const actualDays = now.diff(tripStart, 'days');
+    const exceeded = est - actualDays;
+    return exceeded;
+  }
+
+  get isOverstayed(): boolean {
+    return (this.status === TripStatus.IN_PROGRESS && this.daysExceeded > 0);
   }
 }

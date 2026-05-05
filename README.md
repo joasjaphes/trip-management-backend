@@ -8,6 +8,7 @@ A comprehensive backend API for managing trips, customers, vendors, purchase ord
 - [Roles and Permissions](#roles-and-permissions)
 - [API Endpoints](#api-endpoints)
 - [Purchase Orders](#purchaseOrders-api-purchaseOrders)
+- [Reports](#reports-api-reports)
 - [Data Models](#data-models)
 - [Migrations](#migrations)
 - [Error Handling](#error-handling)
@@ -463,6 +464,45 @@ Content-Type: application/json
   "status": "inprogress"
 }
 ```
+
+#### Update Trip Actual Position
+```http
+PATCH /api/trips/:id/actualPosition
+Content-Type: application/json
+
+{
+  "tripId": "trip-uid-123",
+  "tripActualPosition": "Lat: -6.7, Lng: 39.2"
+}
+```
+
+This endpoint updates the actual position of a trip. The position can be stored in any format (e.g., GPS coordinates, location name, etc.).
+
+**Response:**
+```json
+{
+  "id": "trip-uid-123",
+  "tripReferenceNumber": "TRP-1234567890",
+  "tripDate": "2026-03-07T10:00:00.000Z",
+  "endDate": "2026-03-08T10:00:00.000Z",
+  "tripActualPosition": "Lat: -6.7, Lng: 39.2",
+  "isOverstayed": false,
+  "daysExceeded": 0,
+  "vehicleId": "vehicle-uid-123",
+  "driverId": "driver-uid-123",
+  "routeId": "route-uid-123",
+  "cargoTypeId": "cargo-type-uid-123",
+  "revenue": 1500000,
+  "paidAmount": 200000,
+  "income": 1200000,
+  "status": "inprogress"
+}
+```
+
+**Trip Fields:**
+- `tripActualPosition` (string, optional): The actual position/location of the trip
+- `isOverstayed` (boolean, virtual): Indicates if the trip exceeded the estimated duration. Calculated as `daysExceeded > 0`
+- `daysExceeded` (number, virtual): Number of days the trip exceeded the estimated duration from the route. Calculated as `(endDate - tripDate) - route.estimatedDuration`. If positive, the trip is overdue; if zero or negative, no overstay
 
 ---
 
@@ -1377,6 +1417,231 @@ file: <binary-file-data>
 ```
 
 Use this file path in fields like `driverPhoto`, `licenseFrontPagePhoto`, `receiptAttachment`, etc.
+
+---
+
+### Reports (`/api/reports`)
+
+Reports provide aggregated insights into drivers' permit statuses, vehicles' permit statuses, and expenditure breakdowns.
+
+#### Get Driver Permit Status Report
+```http
+GET /api/reports/drivers-permit-status
+Authorization: Basic <credentials>
+```
+
+**Response:**
+```json
+[
+  {
+    "driverName": "John Doe",
+    "phoneNumber": "+255712345678",
+    "permits": [
+      {
+        "permitName": "Driving License",
+        "daysToExpiry": 120,
+        "expiryDate": "2026-09-01T00:00:00.000Z"
+      },
+      {
+        "permitName": "Passport",
+        "daysToExpiry": 365,
+        "expiryDate": "2027-05-01T00:00:00.000Z"
+      }
+    ]
+  }
+]
+```
+
+**Response Fields:**
+- `driverName`: Full name of the driver (first name + last name)
+- `phoneNumber`: Driver's phone number
+- `permits`: Array of permit objects
+  - `permitName`: Name of the permit (Driving License or Passport)
+  - `daysToExpiry`: Number of days until the permit expires (null if not set)
+  - `expiryDate`: ISO 8601 formatted expiry date (null if not set)
+
+#### Get Vehicle Permit Status Report
+```http
+GET /api/reports/vehicles-permit-status
+Authorization: Basic <credentials>
+```
+
+**Response:**
+```json
+[
+  {
+    "registrationNo": "T123 ABC",
+    "vehicleType": "Truck",
+    "permits": [
+      {
+        "name": "Road License",
+        "issuingAuthority": null,
+        "expiryDate": "2026-12-31T00:00:00.000Z",
+        "daysToExpiry": 245
+      },
+      {
+        "name": "Insurance Certificate",
+        "issuingAuthority": null,
+        "expiryDate": "2026-08-15T00:00:00.000Z",
+        "daysToExpiry": 106
+      }
+    ]
+  }
+]
+```
+
+**Response Fields:**
+- `registrationNo`: Vehicle registration number
+- `vehicleType`: Type of vehicle (Truck or Trailer)
+- `permits`: Array of permit objects
+  - `name`: Permit name/description
+  - `issuingAuthority`: Authority that issued the permit (currently null)
+  - `expiryDate`: ISO 8601 formatted expiry date
+  - `daysToExpiry`: Number of days until the permit expires (null if no expiry date)
+
+#### Get Expenditure Report
+```http
+GET /api/reports/expenditure?startDate=2025-01-01&endDate=2025-12-31
+Authorization: Basic <credentials>
+```
+
+**Query Parameters:**
+- `startDate` (optional): ISO 8601 date string (YYYY-MM-DD) for filtering start date
+- `endDate` (optional): ISO 8601 date string (YYYY-MM-DD) for filtering end date
+
+**Response:**
+```json
+{
+  "tripExpenses": {
+    "items": [
+      {
+        "itemId": "expense-uid-123",
+        "itemName": null,
+        "totalAmount": 500000
+      },
+      {
+        "itemId": "expense-uid-456",
+        "itemName": null,
+        "totalAmount": 250000
+      }
+    ],
+    "total": 750000
+  },
+  "purchases": {
+    "items": [
+      {
+        "itemId": "expense-uid-789",
+        "itemName": null,
+        "totalAmount": 1000000
+      }
+    ],
+    "total": 1000000
+  },
+  "officeExpenses": {
+    "items": [
+      {
+        "itemId": "expense-uid-101",
+        "itemName": null,
+        "totalAmount": 300000
+      }
+    ],
+    "total": 300000
+  },
+  "grandTotal": 2050000
+}
+```
+
+**Response Structure:**
+- `tripExpenses`: Trip-related expenses aggregated by expense item
+  - `items`: Array of aggregated expense items with `itemId`, `itemName`, and `totalAmount`
+  - `total`: Sum of all trip expenses
+- `purchases`: Purchase order items aggregated by item
+  - `items`: Array of aggregated purchase items with `itemId`, `itemName`, and `totalAmount`
+  - `total`: Sum of all purchases
+- `officeExpenses`: Office expense transactions aggregated by expense item
+  - `items`: Array of aggregated office expense items with `itemId`, `itemName`, and `totalAmount`
+  - `total`: Sum of all office expenses
+- `grandTotal`: Total of all expenses (tripExpenses.total + purchases.total + officeExpenses.total)
+
+#### Get Trip Revenue Report
+
+```http
+GET /api/reports/tripRevenue?startDate=2025-01-01&endDate=2025-12-31
+Authorization: Basic <credentials>
+```
+
+Query Parameters:
+- `startDate` (optional): ISO 8601 date string (YYYY-MM-DD) to filter trip start
+- `endDate` (optional): ISO 8601 date string (YYYY-MM-DD) to filter trip end
+
+Notes:
+- All monetary amounts in the response are returned in TZS.
+- If a trip was charged in USD, the service converts the stored `revenue` using the trip's saved `exchangeRate` to compute TZS values.
+
+Example Response:
+```json
+{
+  "items": [
+    {
+      "tripDate": "2026-03-01T10:00:00.000Z",
+      "tripNumber": "TRP-1610000000000",
+      "route": "Dar - Mwanza",
+      "customerName": "Acme Corporation",
+      "tripRevenue": 2300000,
+      "totalTripExpenses": 450000,
+      "netIncome": 1850000
+    }
+  ],
+  "totalTripRevenue": 2300000,
+  "totalTripExpenses": 450000,
+  "totalNetIncome": 1850000
+}
+```
+
+#### Get Debtors Report
+
+```http
+GET /api/reports/debtors?startDate=2025-01-01&endDate=2025-12-31
+Authorization: Basic <credentials>
+```
+
+Query Parameters:
+- `startDate` (optional): ISO 8601 date string (YYYY-MM-DD) to restrict receipts/invoices considered
+- `endDate` (optional): ISO 8601 date string (YYYY-MM-DD) to restrict receipts/invoices considered
+
+Notes:
+- The report groups outstanding invoices by customer.
+- For each invoice the paid amount is calculated from `receipts` tied to that invoice and filtered to the provided date range.
+- If an invoice or its receipts are denominated in USD, the values are converted to TZS using the invoice's saved `exchangeRate` before aggregation.
+- Only invoices with outstanding > 0 (after receipts in the date range) are included.
+
+Example Response:
+```json
+{
+  "items": [
+    {
+      "customerName": "Acme Corporation",
+      "totalInvoicedAmount": 5000000,
+      "totalPaidAmount": 3000000,
+      "outstandingAmount": 2000000,
+      "invoices": [
+        {
+          "invoiceNumber": "INV-1610000000000",
+          "amount": 3000000,
+          "paidAmount": 2000000,
+          "outstanding": 1000000,
+          "issuedAt": "2026-03-01T00:00:00.000Z"
+        }
+      ]
+    }
+  ],
+  "totalInvoicedAmount": 5000000,
+  "totalPaidAmount": 3000000,
+  "totalOutstandingAmount": 2000000
+}
+```
+
+---
 
 ## Data Models
 

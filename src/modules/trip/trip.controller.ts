@@ -6,6 +6,7 @@ import {
   Post,
   Query,
   Put,
+  Patch,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import {
   TripModel,
   TripSummaryQueryDTO,
   TripSummaryStats,
+  UpdateTripActualPositionDTO,
 } from './trip.dto';
 
 @Controller('trips')
@@ -54,5 +56,14 @@ export class TripController {
   @UsePipes(new ValidationPipe())
   async updateTrip(@Body() data: CreateTripDTO): Promise<TripModel> {
     return this.tripService.updateTrip(data);
+  }
+
+  @Patch('/:id/actualPosition')
+  @UsePipes(new ValidationPipe())
+  async updateTripActualPosition(
+    @Param('id') id: string,
+    @Body() data: UpdateTripActualPositionDTO,
+  ): Promise<TripModel> {
+    return this.tripService.updateTripActualPosition(id, data.tripActualPosition);
   }
 }

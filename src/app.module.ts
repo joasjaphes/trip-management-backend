@@ -51,6 +51,8 @@ import { AuthGuard } from './guards/auth.guard';
 import { RoleController } from './modules/role/role.controller';
 import { RoleService } from './modules/role/role.service';
 import { PermissionService } from './modules/permission/permission.service';
+import { ReportsController } from './modules/reports/reports.controller';
+import { ReportsService } from './modules/reports/reports.service';
 
 
 const DATABASE_HOST = process.env.DATABASE_HOST;
@@ -108,6 +110,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     OffloadingPlaceController,
     ReceiptController,
     RoleController,
+    ReportsController,
   ],
   providers: [
     AppService,
@@ -136,6 +139,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     OffloadingPlaceService,
     ReceiptService,
     RoleService,
+    ReportsService,
     PermissionService,
   ],
 })
