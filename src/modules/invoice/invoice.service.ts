@@ -104,6 +104,7 @@ export class InvoiceService {
           return linkedInvoice.toDTO();
         }
 
+        const status = data.status ?? InvoiceStatus.DRAFT;
         const payload = invoiceRepository.create({
           uid: data.id,
           invoiceNumber: `INV-${Date.now()}`,
@@ -125,7 +126,8 @@ export class InvoiceService {
           quantity: 1,
           paymentStatus: this.getPaymentStatus(tripRevenue, paidAmount),
           description: routeName,
-          status: data.status ?? InvoiceStatus.DRAFT,
+          status,
+          issuedAt: status === InvoiceStatus.ISSUED ? new Date() : undefined,
         });
         const createdInvoice = await invoiceRepository.save(payload);
 

@@ -18,7 +18,9 @@ import {
   TripRevenueFilterDTO,
   TripRevenueReportDTO,
   VehiclePermitDTO,
+  DebtorRowDTO,
 } from './reports.dto';
+import { TripStatus } from '../trip/trip.dto';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -181,6 +183,7 @@ export class ReportsService {
 
     if (start) query.andWhere('trip.tripDate >= :start', { start });
     if (end) query.andWhere('trip.tripDate <= :end', { end });
+    query.andWhere('trip.status = :completedStatus', { completedStatus: TripStatus.COMPLETED });
 
     const trips = await query.getMany();
 
@@ -271,7 +274,7 @@ export class ReportsService {
         amount: amountTzs,
         paidAmount: paidTzs,
         outstanding,
-        issuedAt: inv.issuedAt?.toISOString(),
+        issuedAt: inv.createdAt.toISOString(),
       };
 
       const prev = byCustomer.get(custUid);
@@ -282,7 +285,7 @@ export class ReportsService {
       }
     });
 
-    const items: import('./reports.dto').DebtorRowDTO[] = [];
+    const items: DebtorRowDTO[] = [];
     let totalInvoiced = 0;
     let totalPaid = 0;
     let totalOutstanding = 0;
@@ -304,6 +307,7 @@ export class ReportsService {
       totalPaid += custTotalPaid;
       totalOutstanding += custOutstanding;
     }
+
 
     return {
       items,
