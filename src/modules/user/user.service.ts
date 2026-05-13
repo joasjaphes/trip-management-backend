@@ -36,12 +36,12 @@ export class UserService {
       }
       const userPayload: User = await this.getUserPayloadFromDTO(userObject);
       const oldUser = await this.repository.findOne({
-        where: { phoneNumber: userPayload.phoneNumber },
+        where: { uid: userPayload.uid },
       });
       if (oldUser) {
         Logger.warn('User already exists: ' + JSON.stringify(oldUser));
         throw new ConflictException(
-          `User with this phone number [${userPayload.phoneNumber}] already exists`,
+          `User with this ID [${userPayload.uid}] already exists`,
         );
       }
 

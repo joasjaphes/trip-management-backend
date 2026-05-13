@@ -22,7 +22,7 @@ export class User extends BaseAppEntity<UserModel> {
   @Column({ nullable: false })
   salt: string;
 
-  @ManyToMany(() => Role, { eager: false })
+  @ManyToMany(() => Role, { eager: true })
   @JoinTable({ name: 'user_roles' })
   roles?: Role[];
 
@@ -43,7 +43,7 @@ export class User extends BaseAppEntity<UserModel> {
       email: this.email,
       phoneNumber: this.phoneNumber,
       username: this.username,
-      roles: eager && this.roles ? this.roles.map((r) => r.uid) : undefined,
+      roles: this.roles ? this.roles.map((r) => r.uid) : undefined,
       roleName: this.roles ? this.roles.map((r) => r.name).join(' | ') : undefined,
       isActive: this.active,
     };

@@ -110,3 +110,28 @@ export interface DebtorsReportDTO {
   totalPaidAmount: number;
   totalOutstandingAmount: number;
 }
+
+export class CashReportFilterDTO {
+  @IsOptional()
+  @IsDateString()
+  @ApiProperty({ required: false, example: '2025-01-01' })
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  @ApiProperty({ required: false, example: '2025-01-31' })
+  endDate?: string;
+}
+
+export interface CashReportRowDTO {
+  invoiceDate: string;
+  invoiceNumber: string;
+  invoicedAmount: number;
+  actualReceivedAmount: number;
+}
+
+export interface CashReportDTO {
+  items: CashReportRowDTO[];
+  totalInvoicedAmount: number;
+  totalActualReceivedAmount: number;
+}

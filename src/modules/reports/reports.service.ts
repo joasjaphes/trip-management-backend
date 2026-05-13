@@ -19,6 +19,8 @@ import {
   TripRevenueReportDTO,
   VehiclePermitDTO,
   DebtorRowDTO,
+  CashReportFilterDTO,
+  CashReportDTO,
 } from './reports.dto';
 import { TripStatus } from '../trip/trip.dto';
 
@@ -314,6 +316,75 @@ export class ReportsService {
       totalInvoicedAmount: totalInvoiced,
       totalPaidAmount: totalPaid,
       totalOutstandingAmount: totalOutstanding,
+    };
+  }
+
+  async getCashReport(filter: CashReportFilterDTO): Promise<CashReportDTO> {
+    const start = filter.startDate ? new Date(filter.startDate) : undefined;
+    const end = filter.endDate ? new Date(filter.endDate) : undefined;
+
+    const invoiceQuery = this.invoiceRepo
+      .createQueryBuilder('invoice')
+      .orderBy('COALESCE(invoice.issuedAt, invoice.createdAt)', 'DESC');
+
+    if (start) {
+      invoiceQuery.andWhere('COALESCE(invoice.issuedAt, invoice.createdAt) >= :start', { start });
+    }
+    if (end) {
+      invoiceQuery.andWhere('COALESCE(invoice.issuedAt, invoice.createdAt) <= :end', { end });
+    }
+
+    const invoices = await invoiceQuery.getMany();
+    if (invoices.length === 0) {
+      return {
+        items: [],
+        totalInvoicedAmount: 0,
+        totalActualReceivedAmount: 0,
+      };
+    }
+
+    const invoiceUids = invoices.map((invoice) => invoice.uid);
+
+    const receiptQuery = this.receiptRepo
+      .createQueryBuilder('receipt')
+      .select('receipt.invoiceUid', 'invoiceUid')
+      .addSelect('SUM(receipt.amount)', 'totalReceived')
+      .where('receipt.invoiceUid IN (:...invoiceUids)', { invoiceUids })
+      .groupBy('receipt.invoiceUid');
+
+    if (start) {
+      receiptQuery.andWhere('receipt.paidAt >= :start', { start });
+    }
+    if (end) {
+      receiptQuery.andWhere('receipt.paidAt <= :end', { end });
+    }
+
+    const receiptRows: Array<{ invoiceUid: string; totalReceived: string }> = await receiptQuery.getRawMany();
+    const receivedByInvoice = new Map(
+      receiptRows.map((row) => [row.invoiceUid, Number(row.totalReceived ?? 0)]),
+    );
+
+    const items = invoices.map((invoice) => {
+      const isUsd = String(invoice.currency ?? 'TZS').toUpperCase() === 'USD';
+      const rate = Number(invoice.exchangeRate ?? 1);
+      const invoiceAmount = Number(invoice.amount ?? 0);
+      const receivedAmount = receivedByInvoice.get(invoice.uid) ?? 0;
+
+      const invoicedAmount = isUsd ? invoiceAmount * rate : invoiceAmount;
+      const actualReceivedAmount = isUsd ? receivedAmount * rate : receivedAmount;
+
+      return {
+        invoiceDate: (invoice.issuedAt ?? invoice.createdAt).toISOString(),
+        invoiceNumber: invoice.invoiceNumber,
+        invoicedAmount,
+        actualReceivedAmount,
+      };
+    });
+
+    return {
+      items,
+      totalInvoicedAmount: items.reduce((sum, item) => sum + item.invoicedAmount, 0),
+      totalActualReceivedAmount: items.reduce((sum, item) => sum + item.actualReceivedAmount, 0),
     };
   }
 }
