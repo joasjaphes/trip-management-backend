@@ -56,6 +56,11 @@ export interface TripModel extends BaseAppModel {
   subtotal?: number;
   paidAmount: number;
   income: number;
+  loadedQuantity?: number;
+  offloadedQuantity?: number;
+  lossQuantity?: number;
+  ratePerUnit?: number;
+  allowableLoss?: number;
   expenses: TripExpenseModel[];
   isOverstayed?: boolean;
   daysExceeded?: number;
@@ -178,6 +183,31 @@ export class CreateTripDTO extends BaseCreateAppDTO {
   @IsOptional()
   @ApiProperty({ example: 1000, required: false })
   cargoQuantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ example: 1000, required: false })
+  loadedQuantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ example: 1000, required: false })
+  offloadedQuantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ example: 1000, required: false })
+  lossQuantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ example: 1000, required: false })
+  ratePerUnit?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ example: 1000, required: false })
+  allowableLoss?: number;
 
   @IsString() 
   @IsOptional()

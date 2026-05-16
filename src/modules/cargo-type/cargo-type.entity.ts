@@ -10,6 +10,9 @@ export class CargoType extends BaseAppEntity<CargoTypeModel> {
   @Column({ nullable: true, length: 20, default: 'Tons' })
   unitOfMeasure?: string;
 
+  @Column({ nullable: true, default: 0 })
+  allowableLoss?: number;
+
   @Column({ default: true })
   isActive: boolean;
 
@@ -21,6 +24,7 @@ export class CargoType extends BaseAppEntity<CargoTypeModel> {
       updatedAt: this.updatedAt.toISOString(),
       name: this.name,
       unitOfMeasure: this.unitOfMeasure,
+      allowableLoss: this.allowableLoss,
       isActive: this.isActive,
       active: this.active,
       deleted: this.deleted,

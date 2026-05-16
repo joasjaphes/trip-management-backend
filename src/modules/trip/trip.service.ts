@@ -62,17 +62,33 @@ export class TripService {
 
         const revenue = Number(data.revenue);
         const income = Number(data.income);
+        const ratePerUnit = data.ratePerUnit !== undefined ? Number(data.ratePerUnit) : undefined;
+        const loadedQuantity = data.loadedQuantity !== undefined ? Number(data.loadedQuantity) : undefined;
+        const offloadedQuantity = data.offloadedQuantity !== undefined ? Number(data.offloadedQuantity) : undefined;
+        const lossQuantity = data.lossQuantity !== undefined ? Number(data.lossQuantity) : undefined;
+        const allowableLoss = data.allowableLoss !== undefined ? Number(data.allowableLoss) : undefined;
         const exchangeRate = data.exchangeRate !== undefined ? Number(data.exchangeRate) : 1;
         const equivalentAmount = revenue * exchangeRate;
         const cargoQuantity =
           data.cargoQuantity !== undefined ? Number(data.cargoQuantity) : undefined;
+
+        // Calculate loss based on quantities and rate
+        let adjustedRevenue = revenue;
+        if (ratePerUnit !== undefined && loadedQuantity !== undefined && offloadedQuantity !== undefined && allowableLoss !== undefined) {
+          const loss = ratePerUnit * ((offloadedQuantity - loadedQuantity) + allowableLoss) / 1000;
+          // Apply loss to revenue if loss is negative (actual loss reduces revenue)
+          if (loss < 0) {
+            adjustedRevenue = revenue + loss; // Adding negative loss reduces revenue
+          }
+        }
+
         let vatAmount = 0;
-        let subtotal = revenue;
+        let subtotal = adjustedRevenue;
         if (!route.isVATZeroRated) {
           const vatPercentage = Number(route.vatPercentage) ?? 18;
           const vatFactor = 1 + (vatPercentage / 100);
-          subtotal = revenue / Number(vatFactor);
-          vatAmount = revenue - subtotal;
+          subtotal = adjustedRevenue / Number(vatFactor);
+          vatAmount = adjustedRevenue - subtotal;
         }
 
         let customer = await customerRepository.findOne({
@@ -111,6 +127,9 @@ export class TripService {
           offloadingPlaceUid = offloadingPlace.uid;
         }
 
+
+        const cargoType = await cargoTypeRepository.findOne({ where: { uid: data.cargoTypeId } });
+
         const payload = tripRepository.create({
           uid: data.id,
           tripReferenceNumber,
@@ -120,16 +139,21 @@ export class TripService {
           trailerUid: data.trailerId,
           docNumber: data.docNumber,
           cargoQuantity,
+          loadedQuantity,
+          offloadedQuantity,
+          lossQuantity,
+          ratePerUnit,
+          allowableLoss: data.allowableLoss ? (allowableLoss) : Number(cargoType?.allowableLoss) ?? 0,
           driverUid: data.driverId,
           routeUid: data.routeId,
           cargoTypeUid: data.cargoTypeId,
-          revenue,
+          revenue: adjustedRevenue,
           paidAmount,
           subtotal,
           vatAmount,
           income,
           exchangeRate,
-          equivalentAmount,
+          equivalentAmount: adjustedRevenue * exchangeRate,
           status: data.status,
           notes: data.notes,
           tripDocument: data.tripDocument,
@@ -139,11 +163,10 @@ export class TripService {
         });
         const saved = await tripRepository.save(payload);
 
+
         const matchingInvoice = await this.findMatchingInvoiceForTrip(
           customer.uid,
-          revenue,
-          data.routeId,
-          new Date(),
+          cargoType?.unitOfMeasure,
         );
 
         if (matchingInvoice) {
@@ -208,34 +231,44 @@ export class TripService {
           throw new NotFoundException(`Trip with ID ${data.id} does not exist`);
         }
 
-        await this.validateReferences(data, {
+        const { vehicle, driver, route, cargoType } = await this.validateReferences(data, {
           vehicleRepository,
           driverRepository,
           routeRepository,
           cargoTypeRepository,
         });
 
-        let customerUid = entity.customerUid;
-        let offloadingPlaceUid = entity.offloadingPlaceUid;
+        let trailer: Vehicle | undefined;
+        if (data.trailerId !== undefined) {
+          trailer = (await vehicleRepository.findOne({ where: { uid: data.trailerId } })) ?? undefined;
+          if (!trailer) {
+            throw new BadRequestException(`Trailer with ID ${data.trailerId} not found`);
+          }
+        }
+
+        let customer: Customer | undefined;
+        let offloadingPlace: OffloadingPlace | undefined;
 
         if (data.offloadingPlaceName) {
-          let offloadingPlace = await manager.getRepository(OffloadingPlace).findOne({
+          offloadingPlace = (await manager.getRepository(OffloadingPlace).findOne({
             where: { name: data.offloadingPlaceName },
-          });
+          })) ?? undefined;
           if (!offloadingPlace) {
             offloadingPlace = manager.getRepository(OffloadingPlace).create({
               uid: randomUUID(),
               name: data.offloadingPlaceName,
+
             });
             offloadingPlace = await manager.getRepository(OffloadingPlace).save(offloadingPlace);
           }
-          offloadingPlaceUid = offloadingPlace.uid;
+
+          entity.offloadingPlaceUid = offloadingPlace.uid;
         }
 
         if (data.customerTIN) {
-          let customer = await customerRepository.findOne({
+          customer = (await customerRepository.findOne({
             where: { tin: data.customerTIN },
-          });
+          })) ?? undefined;
 
           if (!customer) {
             if (!data.customerName) {
@@ -267,60 +300,236 @@ export class TripService {
               customer = await customerRepository.save(customer);
             }
           }
-
-          customerUid = customer.uid;
         }
 
         const nextPaidAmount =
           data.paidAmount !== undefined
             ? Number(data.paidAmount)
             : Number(entity.paidAmount ?? 0);
-        const nextRevenue =
+        let nextRevenue =
           data.revenue !== undefined
             ? Number(data.revenue)
             : Number(entity.revenue ?? 0);
+        const nextExchangeRate =
+          data.exchangeRate !== undefined
+            ? Number(data.exchangeRate)
+            : Number(entity.exchangeRate ?? 1);
+
+        // Calculate loss based on quantities and rate
+        const nextRatePerUnit = data.ratePerUnit !== undefined ? Number(data.ratePerUnit) : Number(entity.ratePerUnit ?? 0);
+        const nextLoadedQuantity = data.loadedQuantity !== undefined ? Number(data.loadedQuantity) : Number(entity.loadedQuantity ?? 0);
+        const nextOffloadedQuantity = data.offloadedQuantity !== undefined ? Number(data.offloadedQuantity) : Number(entity.offloadedQuantity ?? 0);
+        const nextAllowableLoss = data.allowableLoss !== undefined ? Number(data.allowableLoss) : Number(entity.allowableLoss ? entity.allowableLoss : entity?.cargoType?.allowableLoss ?? 0);
+
+        const loss = nextOffloadedQuantity ?   (nextRatePerUnit * ((nextOffloadedQuantity - nextLoadedQuantity) + nextAllowableLoss) / 1000) : 0;
+
+        // Apply loss to revenue if loss is negative (actual loss reduces revenue)
+        if ( loss < 0) {
+          nextRevenue = nextRevenue + loss; // Adding negative loss reduces revenue
+        }
+
         if (nextPaidAmount < 0 || nextPaidAmount > nextRevenue) {
           throw new BadRequestException('paidAmount must be between 0 and revenue');
         }
 
+        let nextVatAmount = Number(entity.vatAmount ?? 0);
+        let nextSubtotal = Number(entity.subtotal ?? nextRevenue);
+        if (route && !route.isVATZeroRated) {
+          const vatPercentage = Number(route.vatPercentage) ?? 18;
+          const vatFactor = 1 + vatPercentage / 100;
+          nextSubtotal = nextRevenue / Number(vatFactor);
+          nextVatAmount = nextRevenue - nextSubtotal;
+        } else {
+          nextSubtotal = nextRevenue;
+          nextVatAmount = 0;
+        }
+
+
+        const oldCustomerUid = entity.customerUid;
+        const newCustomerUid = customer?.uid ?? entity.customerUid;
+        const customerChanged = oldCustomerUid !== newCustomerUid;
+
         entity.tripDate = data.tripDate ? new Date(data.tripDate) : entity.tripDate;
         entity.endDate = data.endDate ? new Date(data.endDate) : entity.endDate;
-        entity.vehicleUid = data.vehicleId || entity.vehicleUid;
-        entity.trailerUid = data.trailerId || entity.trailerUid;
-        entity.docNumber = data.docNumber || entity.docNumber;
-        entity.driverUid = data.driverId || entity.driverUid;
-        entity.routeUid = data.routeId || entity.routeUid;
-        entity.cargoTypeUid = data.cargoTypeId || entity.cargoTypeUid;
+        entity.vehicleUid = data.vehicleId ?? entity.vehicleUid;
+        entity.vehicle = vehicle;
+        entity.trailerUid = data.trailerId ?? entity.trailerUid;
+        entity.trailer = trailer ?? entity.trailer;
+        entity.docNumber = data.docNumber ?? entity.docNumber;
+        entity.driverUid = data.driverId ?? entity.driverUid;
+        entity.driver = driver;
+        entity.routeUid = data.routeId ?? entity.routeUid;
+        entity.route = route;
+        entity.cargoTypeUid = data.cargoTypeId ?? entity.cargoTypeUid;
+        entity.cargoType = cargoType;
         entity.cargoQuantity =
           data.cargoQuantity !== undefined ? Number(data.cargoQuantity) : entity.cargoQuantity;
         entity.revenue = nextRevenue;
         entity.paidAmount = nextPaidAmount;
         entity.income = data.income !== undefined ? Number(data.income) : entity.income;
-        entity.status = data.status || entity.status;
-        entity.customerUid = customerUid;
-        entity.offloadingPlaceUid = offloadingPlaceUid;
+        entity.status = data.status ?? entity.status;
+        entity.ratePerUnit = data.ratePerUnit !== undefined ? Number(data.ratePerUnit) : entity.ratePerUnit;
+        entity.loadedQuantity = data.loadedQuantity !== undefined ? Number(data.loadedQuantity) : entity.loadedQuantity;
+        entity.offloadedQuantity = data.offloadedQuantity !== undefined ? Number(data.offloadedQuantity) : entity.offloadedQuantity;
+        entity.lossQuantity = data.lossQuantity !== undefined ? Number(data.lossQuantity) : entity.lossQuantity;
+        entity.allowableLoss = data.allowableLoss !== undefined ? Number(data.allowableLoss) : entity.allowableLoss;
         entity.notes = data.notes ?? entity.notes;
         entity.tripDocument = data.tripDocument ?? entity.tripDocument;
         entity.completionDocument = data.completionDocument ?? entity.completionDocument;
-        entity.exchangeRate = data.exchangeRate !== undefined ? Number(data.exchangeRate) : entity.exchangeRate;
-        entity.equivalentAmount = data.exchangeRate !== undefined ? entity.revenue * entity.exchangeRate! : entity.equivalentAmount;
+        entity.exchangeRate = nextExchangeRate;
+        entity.subtotal = nextSubtotal;
+        entity.vatAmount = nextVatAmount;
+        entity.equivalentAmount = entity.revenue * nextExchangeRate;
+        entity.customerUid = customer?.uid ?? entity.customerUid;
+        entity.customer = customer ?? entity.customer;
+        entity.offloadingPlaceUid = offloadingPlace?.uid ?? entity.offloadingPlaceUid;
+        entity.offloadingPlace = offloadingPlace ?? entity.offloadingPlace;
         const updated = await tripRepository.save(entity);
 
+        // Handle invoice management when customer changes
+
         if (updated.invoiceUid) {
-          const invoice = await invoiceRepository.findOne({
+          const oldInvoice = await invoiceRepository.findOne({
             where: { uid: updated.invoiceUid },
           });
-          if (invoice) {
-            invoice.customerUid = customerUid ?? invoice.customerUid;
+          if (oldInvoice && customerChanged) {
+            // Get all trips linked to the old invoice
+            const tripsInOldInvoice = await tripRepository.find({
+              where: { invoiceUid: oldInvoice.uid },
+            });
+
+            if (tripsInOldInvoice.length > 1) {
+              // Multiple trips in old invoice - need to move this trip to new invoice
+     
+
+              // Find or create invoice for new customer
+              const matchingInvoice = await tripRepository
+                .createQueryBuilder('trip')
+                .leftJoinAndSelect('trip.invoice', 'invoice')
+                .leftJoinAndSelect('trip.customer', 'customer')
+                .where('customer.uid = :customerUid', { customerUid: newCustomerUid })
+                .andWhere('trip.uid != :tripId', { tripId: updated.uid })
+                .andWhere('trip.status = :status', { status: TripStatus.IN_PROGRESS })
+                .andWhere('trip.invoiceUid IS NOT NULL')
+                .andWhere('invoice.paymentStatus = :paymentStatus', { paymentStatus: InvoicePaymentStatus.UNPAID })
+                .orderBy('trip.createdAt', 'DESC')
+                .getOne();
+              let newInvoice: Invoice;
+              if (matchingInvoice?.invoice) {
+                // Use existing invoice for new customer
+                newInvoice = matchingInvoice.invoice;
+              } else {
+                // Create new invoice for new customer
+                newInvoice = invoiceRepository.create({
+                  uid: randomUUID(),
+                  invoiceNumber: `INV-${Date.now()}`,
+                  customerUid: newCustomerUid,
+                  amount: updated.revenue,
+                  exchangeRate: updated.exchangeRate,
+                  equivalentAmount: updated.equivalentAmount,
+                  paidAmount: updated.paidAmount,
+                  subtotal: updated.subtotal,
+                  vatAmount: updated.vatAmount,
+                  quantity: 1,
+                  currency: route.routeCurrency ?? 'TZS',
+                  paymentStatus:
+                    updated.paidAmount <= 0
+                      ? InvoicePaymentStatus.UNPAID
+                      : updated.paidAmount >= updated.revenue
+                        ? InvoicePaymentStatus.FULL_PAID
+                        : InvoicePaymentStatus.PARTIALLY_PAID,
+                  description: route.name,
+                  status: InvoiceStatus.DRAFT,
+                });
+                newInvoice = await invoiceRepository.save(newInvoice);
+              }
+
+              // Attach trip to new invoice and refresh aggregates
+              updated.invoiceUid = newInvoice.uid;
+              updated.invoice = newInvoice;
+              await tripRepository.save(updated);
+
+              // Refresh old invoice aggregates (without this trip)
+              await this.refreshInvoiceAggregates(
+                tripRepository,
+                invoiceRepository,
+                oldInvoice,
+              );
+              await this.refreshInvoiceAggregates(
+                tripRepository,
+                invoiceRepository,
+                newInvoice,
+              );
+            } else {
+              const unitOfMeasure = cargoType?.unitOfMeasure ?? null;
+              const matchingTripForCustomerAndUom = await tripRepository
+                .createQueryBuilder('trip')
+                .leftJoinAndSelect('trip.invoice', 'invoice')
+                .leftJoinAndSelect('trip.customer', 'customer')
+                .leftJoinAndSelect('trip.cargoType', 'tripCargoType')
+                .where('customer.uid = :customerUid', { customerUid: newCustomerUid })
+                .andWhere('trip.uid != :tripId', { tripId: updated.uid })
+                .andWhere('trip.status = :status', { status: TripStatus.IN_PROGRESS })
+                .andWhere('trip.invoiceUid IS NOT NULL')
+                .andWhere('invoice.paymentStatus = :paymentStatus', {
+                  paymentStatus: InvoicePaymentStatus.UNPAID,
+                })
+                .andWhere("COALESCE(tripCargoType.unitOfMeasure, '') = COALESCE(:unitOfMeasure, '')", {
+                  unitOfMeasure,
+                })
+                .orderBy('trip.createdAt', 'DESC')
+                .getOne();
+
+              if (matchingTripForCustomerAndUom?.invoice) {
+                // Move this trip to an existing unpaid invoice with matching unit of measure.
+                updated.invoiceUid = matchingTripForCustomerAndUom.invoice.uid;
+                updated.invoice = matchingTripForCustomerAndUom.invoice;
+                await tripRepository.save(updated);
+                await this.refreshInvoiceAggregates(
+                  tripRepository,
+                  invoiceRepository,
+                  matchingTripForCustomerAndUom.invoice,
+                );
+                await invoiceRepository.delete(oldInvoice.id);
+              } else {
+                // Keep current behavior when no matching invoice exists.
+                oldInvoice.customerUid = newCustomerUid!;
+                await this.refreshInvoiceAggregates(
+                  tripRepository,
+                  invoiceRepository,
+                  oldInvoice,
+                );
+              }
+            }
+          } else if (oldInvoice && !customerChanged) {
+            // Customer didn't change, just refresh invoice aggregates
             await this.refreshInvoiceAggregates(
               tripRepository,
               invoiceRepository,
-              invoice,
+              oldInvoice,
             );
           }
         }
 
-        return updated.toDTO();
+        const refreshed = await tripRepository.findOne({
+          where: { uid: updated.uid },
+          relations: {
+            expenses: true,
+            vehicle: true,
+            driver: true,
+            route: true,
+            cargoType: true,
+            customer: true,
+            offloadingPlace: true,
+            trailer: true,
+          },
+        });
+
+        if (!refreshed) {
+          throw new NotFoundException(`Trip with ID ${data.id} does not exist`);
+        }
+
+        return refreshed.toDTO({ eager: true });
       });
     } catch (e) {
       Logger.error('Failed to update trip', e);
@@ -421,8 +630,8 @@ export class TripService {
           offloadingPlace: true,
           trailer: true,
         },
-        order: { createdAt: 'DESC' },
-        take: 3,
+        order: { tripDate: 'DESC' },
+        take: 5,
       });
 
       return {
@@ -431,7 +640,7 @@ export class TripService {
         activeTrips: inProgressTrips,
         outstandingAmount,
         completedTrips,
-        inProgressTrips:inProgressTrips - overStayedTrips,
+        inProgressTrips: inProgressTrips - overStayedTrips,
         overStayedTrips,
         recentTrips: recentTripsEntities.map((trip) => trip.toDTO({ eager: true })),
       };
@@ -497,18 +706,19 @@ export class TripService {
 
   private async findMatchingInvoiceForTrip(
     customerUid: string,
-    invoiceAmount: number,
-    routeUid: string,
-    creationDate: Date,
+    unitOfMeasure = 'Litres',
   ): Promise<Invoice | null> {
+    const status = TripStatus.IN_PROGRESS;
+    const paymentStatus = InvoicePaymentStatus.UNPAID;
     const matchedTrip = await this.repository
       .createQueryBuilder('trip')
       .leftJoinAndSelect('trip.invoice', 'invoice')
+      .leftJoinAndSelect('trip.cargoType', 'cargoType')
       .where('trip.customerUid = :customerUid', { customerUid })
-      .andWhere('trip.routeUid = :routeUid', { routeUid })
-      .andWhere('trip.revenue = :invoiceAmount', { invoiceAmount })
-      .andWhere('DATE(trip.createdAt) = DATE(:creationDate)', { creationDate })
+      .andWhere('trip.status = :status', { status })
       .andWhere('trip.invoiceUid IS NOT NULL')
+      .andWhere('invoice.paymentStatus = :paymentStatus', { paymentStatus })
+      .andWhere('cargoType.unitOfMeasure = :unit', { unit: unitOfMeasure })
       .orderBy('trip.createdAt', 'DESC')
       .getOne();
     return matchedTrip?.invoice ?? null;
@@ -545,7 +755,7 @@ export class TripService {
       (sum, trip) => sum + Number(trip.paidAmount ?? 0),
       0,
     );
-    invoice.quantity = linkedTrips.length;
+    // invoice.quantity = linkedTrips.length;
 
     invoice.exchangeRate = linkedTrips[0]?.exchangeRate;
     invoice.equivalentAmount = linkedTrips.reduce(

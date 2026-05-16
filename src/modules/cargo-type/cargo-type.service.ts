@@ -16,6 +16,7 @@ export class CargoTypeService {
       const payload = this.repository.create({
         uid: data.id,
         name: data.name,
+        allowableLoss: data.allowableLoss ?? 0,
         unitOfMeasure: data.unitOfMeasure ?? 'Tons',
         isActive: data.isActive ?? true,
       });
@@ -36,6 +37,7 @@ export class CargoTypeService {
 
       entity.name = data.name || entity.name;
       entity.unitOfMeasure = data.unitOfMeasure || 'Tons';
+      entity.allowableLoss = data.allowableLoss !== undefined ? Number(data.allowableLoss) : entity.allowableLoss;
       if (data.isActive !== undefined) {
         entity.isActive = data.isActive;
       }

@@ -43,6 +43,21 @@ export class Trip extends BaseAppEntity<TripModel> {
   @Column({ nullable: true, default: 0 })
   cargoQuantity?: number;
 
+  @Column({ nullable: true, default: 0 })
+  loadedQuantity?: number;
+
+  @Column({ nullable: true, default: 0 })
+  offloadedQuantity?: number;
+
+  @Column({ nullable: true, default: 0 })
+  lossQuantity?: number;
+
+  @Column({ nullable: true, default: 0 })
+  ratePerUnit?: number;
+
+  @Column({ nullable: true, default: 0 })
+  allowableLoss?: number;
+
   @Column({ nullable: true, type: 'text' })
   tripDocument?: string;
 
@@ -149,6 +164,11 @@ export class Trip extends BaseAppEntity<TripModel> {
       routeId: this.routeUid,
       cargoTypeId: this.cargoTypeUid,
       cargoQuantity: this.cargoQuantity,
+      loadedQuantity: this.loadedQuantity,
+      offloadedQuantity: this.offloadedQuantity,
+      lossQuantity: this.lossQuantity,
+      ratePerUnit: this.ratePerUnit,
+      allowableLoss: this.allowableLoss,
       docNumber: this.docNumber,
       customerId: this.customerUid,
       customer: this.customer?.toDTO(),
