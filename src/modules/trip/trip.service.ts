@@ -412,7 +412,7 @@ export class TripService {
                 .andWhere('trip.status = :status', { status: TripStatus.IN_PROGRESS })
                 .andWhere('trip.invoiceUid IS NOT NULL')
                 .andWhere('invoice.paymentStatus = :paymentStatus', { paymentStatus: InvoicePaymentStatus.UNPAID })
-                .andWhere('invoice.status = :status', { status: InvoiceStatus.DRAFT })
+                .andWhere('invoice.status = :invoiceStatus', { invoiceStatus: InvoiceStatus.DRAFT })
                 .orderBy('trip.createdAt', 'DESC')
                 .getOne();
               let newInvoice: Invoice;
@@ -475,8 +475,8 @@ export class TripService {
                 .andWhere('invoice.paymentStatus = :paymentStatus', {
                   paymentStatus: InvoicePaymentStatus.UNPAID,
                 })
-                  .andWhere('invoice.status = :status', {
-                  status: InvoiceStatus.DRAFT,
+                  .andWhere('invoice.status = :invoiceStatus', {
+                  invoiceStatus: InvoiceStatus.DRAFT,
                 })
                 .andWhere("COALESCE(tripCargoType.unitOfMeasure, '') = COALESCE(:unitOfMeasure, '')", {
                   unitOfMeasure,
@@ -722,7 +722,7 @@ export class TripService {
       .andWhere('trip.status = :status', { status })
       .andWhere('trip.invoiceUid IS NOT NULL')
       .andWhere('invoice.paymentStatus = :paymentStatus', { paymentStatus })
-      .andWhere('invoice.status = :status', { status: InvoiceStatus.DRAFT })
+      .andWhere('invoice.status = :invoiceStatus', { invoiceStatus: InvoiceStatus.DRAFT })
       .andWhere('cargoType.unitOfMeasure = :unit', { unit: unitOfMeasure })
       .orderBy('trip.createdAt', 'DESC')
       .getOne();
