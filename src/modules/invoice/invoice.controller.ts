@@ -21,7 +21,7 @@ class UpdateInvoiceStatusDTO {
 
 @Controller('invoices')
 export class InvoiceController {
-  constructor(private invoiceService: InvoiceService) {}
+  constructor(private invoiceService: InvoiceService) { }
 
   @Get()
   async getAllInvoices(): Promise<InvoiceModel[]> {
@@ -52,4 +52,10 @@ export class InvoiceController {
   ): Promise<InvoiceModel> {
     return this.invoiceService.updateInvoiceStatus(id, body.status);
   }
+
+  @Post('/:id/submit')
+  async submitInvoice(@Param('id') id: string): Promise<InvoiceModel> {
+    return this.invoiceService.submitInvoice(id);
+  }
 }
+

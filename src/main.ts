@@ -15,11 +15,12 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
   app.useGlobalInterceptors(new SortByCreatedAtInterceptor());
-  app.enableCors({
-    origin: ['http://localhost:4200', 'https://tripmanagement.monitafrica.com'],
-    credentials: true,
-  });
+  app.enableCors();
   app.setGlobalPrefix('api');
+  app.use((req, res, next) => {
+    console.log('Original URL: ', req.originalUrl);
+    next();
+  });
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

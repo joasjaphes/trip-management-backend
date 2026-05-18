@@ -60,7 +60,11 @@ export class ReportsService {
 
       const calcDays = (expiry: Date | null) => {
         if (!expiry) return null;
-        return Math.ceil((expiry.getTime() - now.getTime()) / MS_PER_DAY);
+        let days = Math.ceil((expiry.getTime() - now.getTime()) / MS_PER_DAY);
+        if (days <= 0) {
+          return 0;
+        }
+        return days;
       };
 
       const permits = [
@@ -90,7 +94,11 @@ export class ReportsService {
     const now = new Date();
     const calcDays = (expiry: Date | null) => {
       if (!expiry) return null;
-      return Math.ceil((expiry.getTime() - now.getTime()) / MS_PER_DAY);
+      let days = Math.ceil((expiry.getTime() - now.getTime()) / MS_PER_DAY);
+      if (days <= 0) {
+        return 0;
+      };
+      return days;
     };
 
     return vehicles.map((v) => {

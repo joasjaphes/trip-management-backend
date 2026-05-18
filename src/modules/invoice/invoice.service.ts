@@ -219,6 +219,44 @@ export class InvoiceService {
     }
   }
 
+  async submitInvoice(id: string): Promise<InvoiceModel> {
+    try {
+      return await this.repository.manager.transaction(async (manager) => {
+        const invoiceRepository = manager.getRepository(Invoice);
+        const tripRepository = manager.getRepository(Trip);
+
+        const invoice = await invoiceRepository.findOne({ where: { uid: id } });
+        if (!invoice) {
+          throw new NotFoundException(`Invoice with ID ${id} not found`);
+        }
+        if (invoice.status === InvoiceStatus.ISSUED) {
+          throw new BadRequestException(`Invoice ${id} has already been submitted`);
+        }
+
+        invoice.status = InvoiceStatus.ISSUED;
+        if (!invoice.issuedAt) {
+          invoice.issuedAt = new Date();
+        }
+
+        await invoiceRepository.save(invoice);
+
+        await this.refreshInvoiceAggregates(invoiceRepository, tripRepository, invoice.uid);
+
+        const reloaded = await invoiceRepository.findOne({
+          where: { uid: invoice.uid },
+          relations: { customer: true, trips: true },
+        });
+        if (!reloaded) {
+          throw new NotFoundException('Failed to reload submitted invoice');
+        }
+        return reloaded.toDTO();
+      });
+    } catch (e) {
+      Logger.error('Failed to submit invoice', e);
+      throw e;
+    }
+  }
+
   private getPaymentStatus(
     amount: number,
     paidAmount: number,
